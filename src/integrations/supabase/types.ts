@@ -14,7 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          preference: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          preference?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          preference?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reward_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          program: string
+          program_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          program: string
+          program_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          program?: string
+          program_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_trips: {
+        Row: {
+          created_at: string
+          depart_date: string
+          destination: string
+          id: string
+          origin: string
+          return_date: string | null
+          trip_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          depart_date: string
+          destination: string
+          id?: string
+          origin: string
+          return_date?: string | null
+          trip_data?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          depart_date?: string
+          destination?: string
+          id?: string
+          origin?: string
+          return_date?: string | null
+          trip_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
