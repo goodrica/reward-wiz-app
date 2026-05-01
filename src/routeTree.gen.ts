@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as ExtensionRouteImport } from './routes/extension'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExtensionRoute = ExtensionRouteImport.update({
+  id: '/extension',
+  path: '/extension',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,22 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/auth' | '/compare' | '/learn'
+  fullPaths: '/' | '/account' | '/auth' | '/compare' | '/extension' | '/learn'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/auth' | '/compare' | '/learn'
-  id: '__root__' | '/' | '/account' | '/auth' | '/compare' | '/learn'
+  to: '/' | '/account' | '/auth' | '/compare' | '/extension' | '/learn'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/compare'
+    | '/extension'
+    | '/learn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +92,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
+  ExtensionRoute: typeof ExtensionRoute
   LearnRoute: typeof LearnRoute
 }
 
@@ -86,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/extension': {
+      id: '/extension'
+      path: '/extension'
+      fullPath: '/extension'
+      preLoaderRoute: typeof ExtensionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -124,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
+  ExtensionRoute: ExtensionRoute,
   LearnRoute: LearnRoute,
 }
 export const routeTree = rootRouteImport

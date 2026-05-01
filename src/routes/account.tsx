@@ -26,6 +26,8 @@ interface AccountRow {
   program: string;
   program_type: ProgramType;
   balance: number;
+  last_synced_at: string | null;
+  last_sync_source: string | null;
 }
 interface SavedTrip {
   id: string;
@@ -87,8 +89,12 @@ function Account() {
   };
 
   const updateBalance = async (id: string, balance: number) => {
-    setAccounts((a) => a.map((r) => (r.id === id ? { ...r, balance } : r)));
-    const { error } = await supabase.from("reward_accounts").update({ balance }).eq("id", id);
+    const now = new Date().toISOString();
+    setAccounts((a) => a.map((r) => (r.id === id ? { ...r, balance, last_synced_at: now, last_sync_source: "manual" } : r)));
+    const { error } = await supabase
+      .from("reward_accounts")
+      .update({ balance, last_synced_at: now, last_sync_source: "manual" })
+      .eq("id", id);
     if (error) toast.error(error.message);
   };
 
@@ -139,8 +145,22 @@ function Account() {
             {accounts.map((acc) => (
               <div key={acc.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium">{acc.program}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">{acc.program_type}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{acc.program}</span>
+                    {acc.last_sync_source === "extension" && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
+                        via extension
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                    {acc.program_type}
+                    {acc.last_synced_at && (
+                      <span className="ml-2 normal-case tracking-normal">
+                        · synced {new Date(acc.last_synced_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Label htmlFor={`bal-${acc.id}`} className="sr-only">Balance</Label>

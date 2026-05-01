@@ -43,6 +43,8 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          last_sync_source: string | null
+          last_synced_at: string | null
           program: string
           program_type: string
           updated_at: string
@@ -52,6 +54,8 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_sync_source?: string | null
+          last_synced_at?: string | null
           program: string
           program_type: string
           updated_at?: string
@@ -61,6 +65,8 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_sync_source?: string | null
+          last_synced_at?: string | null
           program?: string
           program_type?: string
           updated_at?: string
