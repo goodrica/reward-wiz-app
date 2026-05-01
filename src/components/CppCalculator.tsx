@@ -147,10 +147,20 @@ export function CppCalculator({
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground shadow-soft">
           <Calculator className="h-4 w-4" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-display text-xl font-semibold tracking-tight">CPP calculator</h3>
           <p className="text-xs text-muted-foreground">Try it with any redemption you're considering.</p>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleShare}
+          className="rounded-full"
+        >
+          {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Share2 className="mr-1.5 h-3.5 w-3.5" />}
+          {copied ? "Copied" : "Share"}
+        </Button>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
