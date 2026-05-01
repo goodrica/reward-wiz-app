@@ -115,6 +115,11 @@ function LearnPage() {
           </p>
         </Card>
 
+        {/* Interactive calculator */}
+        <div className="mt-10">
+          <CppCalculator />
+        </div>
+
         {/* Rules */}
         <h2 className="mt-16 font-display text-3xl font-semibold tracking-tight">
           Five rules every points pro follows
