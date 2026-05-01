@@ -62,25 +62,61 @@ function hashSeed(...parts: string[]): number {
   return (h >>> 0) / 0xffffffff;
 }
 
+/**
+ * Industry baseline valuations (cents per point).
+ * Source: The Points Guy monthly valuations, May 2026
+ * https://thepointsguy.com/loyalty-programs/monthly-valuations
+ *
+ * These are the published "fair value" benchmarks used across the
+ * points-and-miles industry (TPG, NerdWallet, AwardWallet, Bankrate).
+ * A redemption beats the benchmark when its actual CPP > baseCpp.
+ */
 const FLIGHT_PROGRAMS = [
   { name: "Delta SkyMiles", baseCpp: 1.2 },
-  { name: "JetBlue TrueBlue", baseCpp: 1.4 },
-  { name: "United MileagePlus", baseCpp: 1.3 },
-  { name: "American AAdvantage", baseCpp: 1.4 },
+  { name: "JetBlue TrueBlue", baseCpp: 1.35 },
+  { name: "United MileagePlus", baseCpp: 1.35 },
+  { name: "American AAdvantage", baseCpp: 1.6 },
+  { name: "Alaska Atmos Rewards", baseCpp: 1.4 },
+  { name: "Southwest Rapid Rewards", baseCpp: 1.25 },
 ];
 
 const HOTEL_PROGRAMS = [
   { name: "Marriott Bonvoy", baseCpp: 0.8 },
-  { name: "Hilton Honors", baseCpp: 0.5 },
-  { name: "Hyatt", baseCpp: 1.7 },
+  { name: "Hilton Honors", baseCpp: 0.4 },
+  { name: "World of Hyatt", baseCpp: 1.65 },
   { name: "IHG One Rewards", baseCpp: 0.6 },
+  { name: "Wyndham Rewards", baseCpp: 0.65 },
 ];
 
 const PORTAL_PROGRAMS = [
-  { name: "Chase Ultimate Rewards", baseCpp: 1.5 },
-  { name: "Amex Membership Rewards", baseCpp: 1.0 },
-  { name: "Capital One Venture", baseCpp: 1.0 },
+  { name: "Chase Ultimate Rewards", baseCpp: 2.05 },
+  { name: "Amex Membership Rewards", baseCpp: 2.0 },
+  { name: "Capital One Venture", baseCpp: 1.85 },
+  { name: "Citi ThankYou Rewards", baseCpp: 1.9 },
+  { name: "Bilt Rewards", baseCpp: 2.2 },
 ];
+
+/** Look up the published TPG benchmark for a program (used to flag good/bad redemptions). */
+export function getBenchmarkCpp(program: string): number | undefined {
+  const all = [...FLIGHT_PROGRAMS, ...HOTEL_PROGRAMS, ...PORTAL_PROGRAMS];
+  return all.find((p) => p.name === program)?.baseCpp;
+}
+
+/**
+ * Industry rule of thumb: a redemption is "good" when you get at least
+ * the program's published baseline value per point. Below that, paying
+ * cash and saving the points usually wins.
+ */
+export function compareToBenchmark(actualCpp: number, program?: string):
+  | { status: "above" | "at" | "below"; benchmark: number; deltaPct: number }
+  | null {
+  if (!program) return null;
+  const benchmark = getBenchmarkCpp(program);
+  if (!benchmark || actualCpp <= 0) return null;
+  const deltaPct = ((actualCpp - benchmark) / benchmark) * 100;
+  const status = deltaPct >= 5 ? "above" : deltaPct <= -5 ? "below" : "at";
+  return { status, benchmark, deltaPct };
+}
 
 function pickProgram<T extends { name: string }>(list: T[], owned: RewardAccount[], seed: number): T {
   const ownedNames = new Set(owned.map((a) => a.program));
