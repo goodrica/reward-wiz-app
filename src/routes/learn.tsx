@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Calculator, TrendingUp, ShieldCheck, Lightbulb } from "lucide-react";
+import { CppCalculator } from "@/components/CppCalculator";
 
 export const Route = createFileRoute("/learn")({
   head: () => ({
