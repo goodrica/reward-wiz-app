@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "PointPilot Companion",
+  "version": "1.0.0",
+  "description": "Sync your Marriott, JetBlue, and Delta point balances to PointPilot from your browser.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "*://*.marriott.com/*",
+    "*://*.jetblue.com/*",
+    "*://*.delta.com/*",
+    "https://byrvukoettovsqymvvhq.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon.png",
+      "128": "icon.png"
+    },
+    "default_title": "PointPilot Companion"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.marriott.com/*"],
+      "js": ["lib/parsers.js", "content/marriott.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.jetblue.com/*"],
+      "js": ["lib/parsers.js", "content/jetblue.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.delta.com/*"],
+      "js": ["lib/parsers.js", "content/delta.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

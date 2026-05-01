@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PointPilot Companion</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img src="icon.png" alt="" width="22" height="22" />
+        <span>PointPilot</span>
+      </div>
+      <button id="signout-btn" class="link-btn hidden" type="button">Sign out</button>
+    </header>
+
+    <main id="signed-out" class="hidden">
+      <h1>Sign in</h1>
+      <p class="muted">Use your PointPilot account.</p>
+      <form id="signin-form">
+        <label>Email<input type="email" id="email" required autocomplete="email" /></label>
+        <label>Password<input type="password" id="password" required autocomplete="current-password" /></label>
+        <button type="submit" class="primary">Sign in</button>
+        <p id="signin-error" class="error"></p>
+      </form>
+      <p class="muted small">
+        No account? <a id="open-app" href="#">Create one in PointPilot</a>.
+      </p>
+    </main>
+
+    <main id="signed-in" class="hidden">
+      <h1>Detected balances</h1>
+      <p class="muted small" id="user-email"></p>
+      <ul id="balances"></ul>
+      <p id="empty-state" class="muted small hidden">
+        Visit marriott.com, jetblue.com, or delta.com while signed in to your loyalty account. Your balance will appear here.
+      </p>
+      <p id="status" class="status"></p>
+    </main>
+
+    <footer>
+      <a id="open-app-footer" href="#">Open PointPilot →</a>
+    </footer>
+
+    <script src="lib/config.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
