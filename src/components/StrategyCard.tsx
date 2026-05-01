@@ -1,7 +1,7 @@
-import { type Strategy, formatCurrency, formatPoints } from "@/lib/comparison-engine";
+import { type Strategy, formatCurrency, formatPoints, compareToBenchmark } from "@/lib/comparison-engine";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, BedDouble, Car, Check, AlertCircle, TrendingUp } from "lucide-react";
+import { Plane, BedDouble, Car, Check, AlertCircle, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 const ICONS = {
   flight: Plane,
