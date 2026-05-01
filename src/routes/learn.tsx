@@ -128,7 +128,12 @@ function LearnPage() {
 
         {/* Interactive calculator */}
         <div className="mt-10">
-          <CppCalculator />
+          <CppCalculator
+            initialCash={search.cash}
+            initialFees={search.fees}
+            initialPoints={search.points}
+            initialProgram={search.program}
+          />
         </div>
 
         {/* Rules */}
