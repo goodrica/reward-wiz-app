@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Calculator, TrendingUp, ShieldCheck, Lightbulb } from "lucide-react";
+import { CppCalculator } from "@/components/CppCalculator";
 
 export const Route = createFileRoute("/learn")({
   head: () => ({
@@ -113,6 +114,11 @@ function LearnPage() {
             per mile. Above Delta's 1.2¢ baseline → a good redemption.
           </p>
         </Card>
+
+        {/* Interactive calculator */}
+        <div className="mt-10">
+          <CppCalculator />
+        </div>
 
         {/* Rules */}
         <h2 className="mt-16 font-display text-3xl font-semibold tracking-tight">
