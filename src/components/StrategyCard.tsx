@@ -1,7 +1,7 @@
-import { type Strategy, formatCurrency, formatPoints } from "@/lib/comparison-engine";
+import { type Strategy, formatCurrency, formatPoints, compareToBenchmark } from "@/lib/comparison-engine";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, BedDouble, Car, Check, AlertCircle, TrendingUp } from "lucide-react";
+import { Plane, BedDouble, Car, Check, AlertCircle, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 const ICONS = {
   flight: Plane,
@@ -76,6 +76,32 @@ export function StrategyCard({ strategy, rank, highlight }: { strategy: Strategy
             </span>
             {strategy.centsPerPoint > 0 && <span className="text-xs text-muted-foreground">¢</span>}
           </div>
+          {(() => {
+            const primaryProgram = Object.keys(strategy.pointsProgramBreakdown)[0];
+            const cmp = compareToBenchmark(strategy.centsPerPoint, primaryProgram);
+            if (!cmp) return null;
+            const Icon = cmp.status === "above" ? ArrowUp : cmp.status === "below" ? ArrowDown : Minus;
+            const tone =
+              cmp.status === "above"
+                ? "text-moss"
+                : cmp.status === "below"
+                  ? "text-terracotta"
+                  : "text-muted-foreground";
+            const label =
+              cmp.status === "above"
+                ? `${Math.round(cmp.deltaPct)}% above`
+                : cmp.status === "below"
+                  ? `${Math.round(Math.abs(cmp.deltaPct))}% below`
+                  : "at benchmark";
+            return (
+              <div className={`mt-1 flex items-center gap-1 text-[11px] ${tone}`}>
+                <Icon className="h-3 w-3" />
+                <span>
+                  {label} TPG baseline ({cmp.benchmark.toFixed(2)}¢)
+                </span>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

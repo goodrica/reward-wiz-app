@@ -51,12 +51,15 @@ function Home() {
                     Start a comparison <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/learn">
                   <Button size="lg" variant="ghost" className="rounded-full">
-                    Save your reward profile
+                    How we value points
                   </Button>
                 </Link>
               </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Built on the cents-per-point methodology used by The Points Guy, NerdWallet &amp; AwardWallet.
+              </p>
 
               <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-border/60 pt-8">
                 {[
