@@ -22,6 +22,13 @@ export function SiteHeader() {
           >
             New comparison
           </Link>
+          <Link
+            to="/learn"
+            className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            activeProps={{ className: "text-foreground" }}
+          >
+            Methodology
+          </Link>
           {user ? (
             <>
               <Link
