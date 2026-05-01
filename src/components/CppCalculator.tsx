@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { Calculator, ArrowUp, ArrowDown, Minus, Share2, Check } from "lucide-react";
 import { getBenchmarkCpp } from "@/lib/comparison-engine";
+import { toast } from "sonner";
 
 const PROGRAMS = [
   "American AAdvantage",
@@ -47,12 +49,56 @@ function parseAmount(v: string, max: number): number {
   return Math.min(n, max);
 }
 
-export function CppCalculator() {
-  const [cash, setCash] = useState("480");
-  const [fees, setFees] = useState("11.20");
-  const [points, setPoints] = useState("35000");
-  const [program, setProgram] = useState<string>("Delta SkyMiles");
+interface CppCalculatorProps {
+  initialCash?: string;
+  initialFees?: string;
+  initialPoints?: string;
+  initialProgram?: string;
+}
+
+export function CppCalculator({
+  initialCash,
+  initialFees,
+  initialPoints,
+  initialProgram,
+}: CppCalculatorProps = {}) {
+  const [cash, setCash] = useState(initialCash || "480");
+  const [fees, setFees] = useState(initialFees || "11.20");
+  const [points, setPoints] = useState(initialPoints || "35000");
+  const [program, setProgram] = useState<string>(
+    initialProgram && PROGRAMS.includes(initialProgram) ? initialProgram : "Delta SkyMiles",
+  );
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Keep URL in sync so the page can be shared / refreshed with the same inputs.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const setParam = (k: string, v: string) => {
+      if (v) url.searchParams.set(k, v);
+      else url.searchParams.delete(k);
+    };
+    setParam("cash", cash);
+    setParam("fees", fees);
+    setParam("points", points);
+    setParam("program", program);
+    window.history.replaceState({}, "", url.toString());
+  }, [cash, fees, points, program]);
+
+  async function handleShare() {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Share link copied", { description: "Anyone with the link sees the same result." });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy link", { description: url });
+    }
+  }
+
 
   const result = useMemo(() => {
     const parsed = formSchema.safeParse({ cash, fees, points, program });
@@ -101,10 +147,20 @@ export function CppCalculator() {
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground shadow-soft">
           <Calculator className="h-4 w-4" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-display text-xl font-semibold tracking-tight">CPP calculator</h3>
           <p className="text-xs text-muted-foreground">Try it with any redemption you're considering.</p>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleShare}
+          className="rounded-full"
+        >
+          {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Share2 className="mr-1.5 h-3.5 w-3.5" />}
+          {copied ? "Copied" : "Share"}
+        </Button>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

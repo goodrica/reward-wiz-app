@@ -1,11 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Calculator, TrendingUp, ShieldCheck, Lightbulb } from "lucide-react";
 import { CppCalculator } from "@/components/CppCalculator";
 
+const learnSearchSchema = z.object({
+  cash: fallback(z.string(), "").default(""),
+  fees: fallback(z.string(), "").default(""),
+  points: fallback(z.string(), "").default(""),
+  program: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/learn")({
+  validateSearch: zodValidator(learnSearchSchema),
   head: () => ({
     meta: [
       { title: "Best practices for points & miles — PointPilot" },
@@ -79,6 +89,7 @@ const RULES = [
 ];
 
 function LearnPage() {
+  const search = Route.useSearch();
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -117,7 +128,12 @@ function LearnPage() {
 
         {/* Interactive calculator */}
         <div className="mt-10">
-          <CppCalculator />
+          <CppCalculator
+            initialCash={search.cash}
+            initialFees={search.fees}
+            initialPoints={search.points}
+            initialProgram={search.program}
+          />
         </div>
 
         {/* Rules */}
