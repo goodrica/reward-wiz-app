@@ -89,6 +89,7 @@ const RULES = [
 ];
 
 function LearnPage() {
+  const search = Route.useSearch();
   return (
     <div className="min-h-screen">
       <SiteHeader />
