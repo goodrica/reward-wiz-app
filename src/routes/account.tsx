@@ -28,6 +28,10 @@ interface AccountRow {
   balance: number;
   last_synced_at: string | null;
   last_sync_source: string | null;
+  last_sync_url: string | null;
+  last_sync_method: string | null;
+  last_sync_detail: string | null;
+  last_sync_confidence: number | null;
 }
 interface SavedTrip {
   id: string;
