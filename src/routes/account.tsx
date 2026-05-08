@@ -28,6 +28,10 @@ interface AccountRow {
   balance: number;
   last_synced_at: string | null;
   last_sync_source: string | null;
+  last_sync_url: string | null;
+  last_sync_method: string | null;
+  last_sync_detail: string | null;
+  last_sync_confidence: number | null;
 }
 interface SavedTrip {
   id: string;
@@ -161,6 +165,26 @@ function Account() {
                       </span>
                     )}
                   </div>
+                  {acc.last_sync_source === "extension" && (acc.last_sync_method || acc.last_sync_url) && (
+                    <details className="mt-1 text-[11px] text-muted-foreground">
+                      <summary className="cursor-pointer select-none hover:text-foreground">Detection details</summary>
+                      <div className="mt-1 space-y-0.5 font-mono">
+                        {acc.last_sync_confidence != null && (
+                          <div>confidence: {Math.round(acc.last_sync_confidence * 100)}%</div>
+                        )}
+                        {acc.last_sync_method && <div>method: {acc.last_sync_method}</div>}
+                        {acc.last_sync_detail && <div className="break-all">detail: {acc.last_sync_detail}</div>}
+                        {acc.last_sync_url && (
+                          <div className="break-all">
+                            url:{" "}
+                            <a href={acc.last_sync_url} target="_blank" rel="noreferrer" className="underline">
+                              {acc.last_sync_url}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <Label htmlFor={`bal-${acc.id}`} className="sr-only">Balance</Label>

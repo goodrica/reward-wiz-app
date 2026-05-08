@@ -79,7 +79,7 @@ async function pgFetch(path, init = {}) {
   return res.json();
 }
 
-async function syncBalance(programSlug, balance) {
+async function syncBalance(programSlug, info) {
   const meta = PROGRAM_REGISTRY[programSlug];
   if (!meta) throw new Error("Unknown program");
   const s = await refreshIfNeeded();
@@ -88,9 +88,14 @@ async function syncBalance(programSlug, balance) {
     `/reward_accounts?user_id=eq.${userId}&program=eq.${encodeURIComponent(meta.program)}&select=id`
   );
   const payload = {
-    balance,
+    balance: info.balance,
     last_synced_at: new Date().toISOString(),
-    last_sync_source: "extension",
+    last_sync_source: info.source || "extension",
+    last_sync_url: info.url || null,
+    last_sync_method: info.method || null,
+    last_sync_detail: info.detail || null,
+    last_sync_confidence:
+      typeof info.confidence === "number" ? info.confidence : null,
   };
   if (existing.length > 0) {
     await pgFetch(`/reward_accounts?id=eq.${existing[0].id}`, {
@@ -164,7 +169,7 @@ function renderBalances(detected, syncingProgram) {
       $("status").textContent = "";
       try {
         renderBalances(detected, slug);
-        await syncBalance(slug, info.balance);
+        await syncBalance(slug, info);
         $("status").textContent = `${meta.program} synced.`;
       } catch (e) {
         $("status").textContent = `Sync failed: ${e.message}`;
