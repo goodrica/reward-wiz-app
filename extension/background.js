@@ -9,12 +9,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   (async () => {
     const store = (await chrome.storage.session.get(SESSION_KEY))[SESSION_KEY] || {};
     const prev = store[msg.program];
-    // Only update if value changed or first detection — avoids spam.
-    if (!prev || prev.balance !== msg.balance) {
+    // Update if value changed OR a higher-confidence source found the same value.
+    const changed =
+      !prev ||
+      prev.balance !== msg.balance ||
+      (msg.confidence || 0) > (prev.confidence || 0);
+    if (changed) {
       store[msg.program] = {
         balance: msg.balance,
         url: msg.url,
         detectedAt: msg.detectedAt,
+        source: msg.source || "unknown",
+        confidence: typeof msg.confidence === "number" ? msg.confidence : 0.5,
+        method: msg.method || "",
+        detail: msg.detail || "",
       };
       await chrome.storage.session.set({ [SESSION_KEY]: store });
       try {
