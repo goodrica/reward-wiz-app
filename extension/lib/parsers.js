@@ -1,14 +1,15 @@
 // Shared DOM helpers for content scripts.
 // Exposed on `self` so non-module content scripts can use them.
+//
+// All `findBalanceBy*` helpers return either `null` or
+//   { value: number, method: string, detail?: string }
+// where `method` describes the intrinsic detection technique. Content scripts
+// wrap each attempt with a stable `source` name and a `confidence` score
+// (0..1) so the popup can show the user which strategy matched.
 (function () {
-  // Parse a balance-shaped number out of arbitrary text. Requires at least
-  // 3 digits to avoid grabbing things like "1 night" or "$25". Rejects
-  // currency-prefixed values ($1,234) and decimals (1,234.56) which are
-  // almost always money, not points.
   function parseNumber(text, { min = 100, max = 100_000_000 } = {}) {
     if (!text) return null;
     const cleaned = String(text).replace(/\u00a0/g, " ").trim();
-    // Find a digit run with optional thousand separators. No decimal part.
     const match = cleaned.match(/(?<![\$£€¥])\b(\d{1,3}(?:[,\s]\d{3})+|\d{3,9})\b(?!\.\d)/);
     if (!match) return null;
     const n = parseInt(match[1].replace(/[,\s]/g, ""), 10);
@@ -16,7 +17,6 @@
     return n;
   }
 
-  // True if the element (or an ancestor up to `depth`) is hidden.
   function isVisible(el, depth = 4) {
     let cur = el;
     for (let i = 0; i < depth && cur; i++) {
@@ -28,7 +28,6 @@
     return true;
   }
 
-  // Walk visible text nodes and find one matching the regex; return parsed number.
   function findBalanceByRegex(regex, opts) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
@@ -49,7 +48,9 @@
       const m = node.nodeValue.match(regex);
       if (m) {
         const n = parseNumber(m[1] || m[0], opts);
-        if (n && isVisible(node.parentElement)) return n;
+        if (n && isVisible(node.parentElement)) {
+          return { value: n, method: "regex", detail: regex.source.slice(0, 60) };
+        }
       }
     }
     return null;
@@ -65,26 +66,23 @@
       }
       for (const el of els) {
         if (!isVisible(el)) continue;
-        // Prefer aria-label / title / data-value for accessibility-tagged elements.
         const candidates = [
-          el.getAttribute?.("aria-label"),
-          el.getAttribute?.("title"),
-          el.getAttribute?.("data-value"),
-          el.getAttribute?.("data-balance"),
-          el.textContent,
-        ].filter(Boolean);
-        for (const c of candidates) {
+          ["aria-label", el.getAttribute?.("aria-label")],
+          ["title", el.getAttribute?.("title")],
+          ["data-value", el.getAttribute?.("data-value")],
+          ["data-balance", el.getAttribute?.("data-balance")],
+          ["text", el.textContent],
+        ];
+        for (const [attr, c] of candidates) {
+          if (!c) continue;
           const n = parseNumber(c, opts);
-          if (n) return n;
+          if (n) return { value: n, method: "selector", detail: `${sel} (${attr})` };
         }
       }
     }
     return null;
   }
 
-  // Find a label (e.g. "Points balance") then look for a number in the
-  // same element, a sibling, or a nearby descendant. Handles layouts that
-  // separate the label and the value into different nodes.
   function findBalanceNearLabel(labelRegex, opts) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode(n) {
@@ -99,19 +97,16 @@
     while ((node = walker.nextNode())) {
       const start = node.parentElement;
       if (!start || !isVisible(start)) continue;
-      // Climb up to 3 ancestors and search their text for a number.
       let cur = start;
       for (let i = 0; i < 4 && cur; i++) {
         const text = cur.textContent || "";
-        // Strip the label itself so we don't re-match it.
         const stripped = text.replace(labelRegex, " ");
         const n = parseNumber(stripped, opts);
-        if (n) return n;
-        // Also try the next sibling.
+        if (n) return { value: n, method: "label-proximity", detail: labelRegex.source.slice(0, 60) };
         const sib = cur.nextElementSibling;
         if (sib && isVisible(sib)) {
           const m = parseNumber(sib.textContent || "", opts);
-          if (m) return m;
+          if (m) return { value: m, method: "label-proximity", detail: `sibling of "${labelRegex.source.slice(0, 40)}"` };
         }
         cur = cur.parentElement;
       }
@@ -119,7 +114,6 @@
     return null;
   }
 
-  // Scan inline JSON-LD and other application/json blocks for likely balance keys.
   function findBalanceInJsonBlocks(keyRegex, opts) {
     const blocks = document.querySelectorAll(
       'script[type="application/json"], script[type="application/ld+json"]'
@@ -127,19 +121,17 @@
     for (const b of blocks) {
       const txt = b.textContent || "";
       if (txt.length < 5 || txt.length > 200_000) continue;
-      // Cheap pre-filter: must mention a relevant key.
       if (!keyRegex.test(txt)) continue;
       try {
         const data = JSON.parse(txt);
         const found = walkJson(data, keyRegex, opts);
-        if (found) return found;
+        if (found) return { value: found.value, method: "json", detail: `key=${found.key}` };
       } catch {
-        // Fall back to a regex sweep over the raw JSON text.
-        const re = new RegExp(`"(?:${keyRegex.source})"\\s*:\\s*"?(\\d[\\d,]{2,})`, "i");
+        const re = new RegExp(`"(${keyRegex.source})"\\s*:\\s*"?(\\d[\\d,]{2,})`, "i");
         const m = txt.match(re);
         if (m) {
-          const n = parseNumber(m[1], opts);
-          if (n) return n;
+          const n = parseNumber(m[2], opts);
+          if (n) return { value: n, method: "json", detail: `key=${m[1]} (regex)` };
         }
       }
     }
@@ -150,8 +142,8 @@
     if (!obj || depth > 8) return null;
     if (Array.isArray(obj)) {
       for (const v of obj) {
-        const n = walkJson(v, keyRegex, opts, depth + 1);
-        if (n) return n;
+        const f = walkJson(v, keyRegex, opts, depth + 1);
+        if (f) return f;
       }
       return null;
     }
@@ -159,28 +151,56 @@
     for (const [k, v] of Object.entries(obj)) {
       if (keyRegex.test(k) && (typeof v === "number" || typeof v === "string")) {
         const n = parseNumber(String(v), opts);
-        if (n) return n;
+        if (n) return { value: n, key: k };
       }
       if (v && typeof v === "object") {
-        const n = walkJson(v, keyRegex, opts, depth + 1);
-        if (n) return n;
+        const f = walkJson(v, keyRegex, opts, depth + 1);
+        if (f) return f;
       }
     }
     return null;
   }
 
-  function reportBalance(program, balance) {
-    if (!balance) return;
+  // Run a list of detection attempts in order and return the first hit
+  // along with a stable source label + confidence score.
+  // attempts: Array<{ source: string, confidence: number, run: () => Result|null }>
+  function runDetection(attempts) {
+    for (const a of attempts) {
+      let r;
+      try {
+        r = a.run();
+      } catch (e) {
+        console.warn("[PointPilot] attempt threw", a.source, e);
+        continue;
+      }
+      if (r && r.value) {
+        return {
+          value: r.value,
+          source: a.source,
+          confidence: a.confidence,
+          method: r.method,
+          detail: r.detail || "",
+        };
+      }
+    }
+    return null;
+  }
+
+  function reportBalance(program, hit) {
+    if (!hit || !hit.value) return;
     chrome.runtime.sendMessage({
       type: "BALANCE_FOUND",
       program,
-      balance,
+      balance: hit.value,
+      source: hit.source,
+      confidence: hit.confidence,
+      method: hit.method,
+      detail: hit.detail,
       url: location.href,
       detectedAt: Date.now(),
     });
   }
 
-  // Run `fn` now, then again on DOM mutations (debounced) for SPA pages.
   function watchForBalance(fn) {
     let last = 0;
     let timer = null;
@@ -215,6 +235,7 @@
     findBalanceBySelector,
     findBalanceNearLabel,
     findBalanceInJsonBlocks,
+    runDetection,
     reportBalance,
     watchForBalance,
   };

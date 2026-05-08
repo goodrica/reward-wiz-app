@@ -141,7 +141,21 @@ function renderBalances(detected, syncingProgram) {
     const value = document.createElement("span");
     value.className = "value";
     value.textContent = `${info.balance.toLocaleString()} ${meta.program_type === "hotel" ? "pts" : "miles"}`;
-    left.append(name, value);
+
+    const conf = typeof info.confidence === "number" ? info.confidence : 0.5;
+    const tier = conf >= 0.85 ? "high" : conf >= 0.6 ? "med" : "low";
+    const tierLabel = tier === "high" ? "High" : tier === "med" ? "Medium" : "Low";
+    const badge = document.createElement("span");
+    badge.className = `confidence confidence-${tier}`;
+    badge.textContent = `${tierLabel} · ${Math.round(conf * 100)}%`;
+    badge.title = `Matched via: ${info.source || "unknown"}${info.detail ? ` — ${info.detail}` : ""}`;
+
+    const src = document.createElement("span");
+    src.className = "source";
+    src.textContent = `via ${info.source || "unknown"}`;
+    src.title = info.detail || "";
+
+    left.append(name, value, badge, src);
     const btn = document.createElement("button");
     btn.className = "sync";
     btn.textContent = syncingProgram === slug ? "Syncing…" : "Sync";
