@@ -169,7 +169,7 @@ function renderBalances(detected, syncingProgram) {
       $("status").textContent = "";
       try {
         renderBalances(detected, slug);
-        await syncBalance(slug, info.balance);
+        await syncBalance(slug, info);
         $("status").textContent = `${meta.program} synced.`;
       } catch (e) {
         $("status").textContent = `Sync failed: ${e.message}`;
