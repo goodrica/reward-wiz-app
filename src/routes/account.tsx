@@ -112,6 +112,44 @@ function Account() {
     await supabase.from("saved_trips").delete().eq("id", id);
   };
 
+  const buildDetectionJson = (acc: AccountRow) =>
+    JSON.stringify(
+      {
+        program: acc.program,
+        program_type: acc.program_type,
+        balance: acc.balance,
+        last_synced_at: acc.last_synced_at,
+        last_sync_source: acc.last_sync_source,
+        last_sync_url: acc.last_sync_url,
+        last_sync_method: acc.last_sync_method,
+        last_sync_detail: acc.last_sync_detail,
+        last_sync_confidence: acc.last_sync_confidence,
+      },
+      null,
+      2
+    );
+
+  const copyDetectionJson = async (acc: AccountRow) => {
+    try {
+      await navigator.clipboard.writeText(buildDetectionJson(acc));
+      toast.success("Detection metadata copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const downloadDetectionJson = (acc: AccountRow) => {
+    const blob = new Blob([buildDetectionJson(acc)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${acc.program.replace(/\s+/g, "-").toLowerCase()}-detection.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading || !user) {
     return (
       <div className="min-h-screen">
