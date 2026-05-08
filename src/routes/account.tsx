@@ -182,6 +182,22 @@ function Account() {
                             </a>
                           </div>
                         )}
+                        <div className="mt-2 flex gap-2 font-sans">
+                          <button
+                            type="button"
+                            onClick={() => copyDetectionJson(acc)}
+                            className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
+                          >
+                            Copy JSON
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => downloadDetectionJson(acc)}
+                            className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
+                          >
+                            Download JSON
+                          </button>
+                        </div>
                       </div>
                     </details>
                   )}
