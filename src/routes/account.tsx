@@ -213,7 +213,7 @@ function Account() {
                       </span>
                     )}
                   </div>
-                  {acc.last_sync_source === "extension" && (acc.last_sync_method || acc.last_sync_url) && (
+                  {acc.last_sync_source?.startsWith("extension") && (acc.last_sync_method || acc.last_sync_url) && (
                     <details className="mt-1 text-[11px] text-muted-foreground">
                       <summary className="cursor-pointer select-none hover:text-foreground">Detection details</summary>
                       <div className="mt-1 space-y-0.5 font-mono">
