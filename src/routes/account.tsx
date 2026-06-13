@@ -189,9 +189,19 @@ function Account() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{acc.program}</span>
-                    {acc.last_sync_source === "extension" && (
+                    {acc.last_sync_source === "extension-auto" && (
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                        auto-synced
+                      </span>
+                    )}
+                    {acc.last_sync_source?.startsWith("extension") && acc.last_sync_source !== "extension-auto" && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
                         via extension
+                      </span>
+                    )}
+                    {acc.last_sync_source === "manual" && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        manual
                       </span>
                     )}
                   </div>
