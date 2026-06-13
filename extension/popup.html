@@ -29,11 +29,20 @@
     </main>
 
     <main id="signed-in" class="hidden">
-      <h1>Detected balances</h1>
+      <div class="row">
+        <h1>Detected balances</h1>
+        <button id="refresh-all-btn" type="button" class="ghost" title="Open every supported program in background tabs and auto-sync">Refresh all</button>
+      </div>
       <p class="muted small" id="user-email"></p>
+
+      <section id="stale-section" class="stale-section hidden">
+        <h2>Needs a refresh</h2>
+        <ul id="stale-list"></ul>
+      </section>
+
       <ul id="balances"></ul>
       <p id="empty-state" class="muted small hidden">
-        Visit marriott.com, jetblue.com, or delta.com while signed in to your loyalty account. Your balance will appear here.
+        Visit any supported loyalty site (Marriott, Hilton, Delta, Amex, Chase, etc.) while signed in. High-confidence matches sync automatically.
       </p>
       <p id="status" class="status"></p>
     </main>
@@ -43,6 +52,7 @@
     </footer>
 
     <script src="lib/config.js"></script>
+    <script src="lib/api.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
