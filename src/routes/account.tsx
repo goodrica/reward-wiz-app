@@ -189,9 +189,19 @@ function Account() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{acc.program}</span>
-                    {acc.last_sync_source === "extension" && (
+                    {acc.last_sync_source === "extension-auto" && (
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                        auto-synced
+                      </span>
+                    )}
+                    {acc.last_sync_source?.startsWith("extension") && acc.last_sync_source !== "extension-auto" && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
                         via extension
+                      </span>
+                    )}
+                    {acc.last_sync_source === "manual" && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        manual
                       </span>
                     )}
                   </div>
@@ -203,7 +213,7 @@ function Account() {
                       </span>
                     )}
                   </div>
-                  {acc.last_sync_source === "extension" && (acc.last_sync_method || acc.last_sync_url) && (
+                  {acc.last_sync_source?.startsWith("extension") && (acc.last_sync_method || acc.last_sync_url) && (
                     <details className="mt-1 text-[11px] text-muted-foreground">
                       <summary className="cursor-pointer select-none hover:text-foreground">Detection details</summary>
                       <div className="mt-1 space-y-0.5 font-mono">

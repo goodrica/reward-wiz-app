@@ -1,46 +1,57 @@
 {
   "manifest_version": 3,
   "name": "PointPilot Companion",
-  "version": "1.0.0",
-  "description": "Sync your Marriott, JetBlue, and Delta point balances to PointPilot from your browser.",
-  "permissions": ["storage", "activeTab"],
+  "version": "1.1.0",
+  "description": "Auto-sync your hotel, airline, and credit card point balances to PointPilot from your browser.",
+  "permissions": ["storage", "activeTab", "tabs", "alarms"],
   "host_permissions": [
     "*://*.marriott.com/*",
-    "*://*.jetblue.com/*",
+    "*://*.hilton.com/*",
+    "*://*.hyatt.com/*",
+    "*://*.ihg.com/*",
+    "*://*.wyndhamhotels.com/*",
+    "*://*.choicehotels.com/*",
     "*://*.delta.com/*",
+    "*://*.jetblue.com/*",
+    "*://*.united.com/*",
+    "*://*.aa.com/*",
+    "*://*.alaskaair.com/*",
+    "*://*.southwest.com/*",
+    "*://*.americanexpress.com/*",
+    "*://*.chase.com/*",
+    "*://ultimaterewards.chase.com/*",
+    "*://*.capitalone.com/*",
+    "*://*.thankyou.com/*",
+    "*://*.citi.com/*",
+    "*://*.biltrewards.com/*",
     "https://byrvukoettovsqymvvhq.supabase.co/*"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "48": "icon.png",
-      "128": "icon.png"
-    },
+    "default_icon": { "48": "icon.png", "128": "icon.png" },
     "default_title": "PointPilot Companion"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "content_scripts": [
-    {
-      "matches": ["*://*.marriott.com/*"],
-      "js": ["lib/parsers.js", "content/marriott.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["*://*.jetblue.com/*"],
-      "js": ["lib/parsers.js", "content/jetblue.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["*://*.delta.com/*"],
-      "js": ["lib/parsers.js", "content/delta.js"],
-      "run_at": "document_idle"
-    }
+    { "matches": ["*://*.marriott.com/*"],       "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/marriott.js"],   "run_at": "document_idle" },
+    { "matches": ["*://*.hilton.com/*"],         "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/hilton.js"],     "run_at": "document_idle" },
+    { "matches": ["*://*.hyatt.com/*"],          "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/hyatt.js"],      "run_at": "document_idle" },
+    { "matches": ["*://*.ihg.com/*"],            "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/ihg.js"],        "run_at": "document_idle" },
+    { "matches": ["*://*.wyndhamhotels.com/*"],  "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/wyndham.js"],    "run_at": "document_idle" },
+    { "matches": ["*://*.choicehotels.com/*"],   "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/choice.js"],     "run_at": "document_idle" },
+    { "matches": ["*://*.delta.com/*"],          "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/delta.js"],      "run_at": "document_idle" },
+    { "matches": ["*://*.jetblue.com/*"],        "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/jetblue.js"],    "run_at": "document_idle" },
+    { "matches": ["*://*.united.com/*"],         "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/united.js"],     "run_at": "document_idle" },
+    { "matches": ["*://*.aa.com/*"],             "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/aa.js"],         "run_at": "document_idle" },
+    { "matches": ["*://*.alaskaair.com/*"],      "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/alaska.js"],     "run_at": "document_idle" },
+    { "matches": ["*://*.southwest.com/*"],      "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/southwest.js"],  "run_at": "document_idle" },
+    { "matches": ["*://*.americanexpress.com/*"],"js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/amex.js"],       "run_at": "document_idle" },
+    { "matches": ["*://ultimaterewards.chase.com/*", "*://*.chase.com/*"], "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/chase.js"], "run_at": "document_idle" },
+    { "matches": ["*://*.capitalone.com/*"],     "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/capitalone.js"], "run_at": "document_idle" },
+    { "matches": ["*://*.thankyou.com/*", "*://*.citi.com/*"], "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/citi.js"], "run_at": "document_idle" },
+    { "matches": ["*://*.biltrewards.com/*"],    "js": ["lib/config.js", "lib/parsers.js", "lib/detectors.js", "content/bilt.js"],       "run_at": "document_idle" }
   ],
-  "icons": {
-    "48": "icon.png",
-    "128": "icon.png"
-  }
+  "icons": { "48": "icon.png", "128": "icon.png" }
 }
