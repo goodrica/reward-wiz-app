@@ -1,91 +1,73 @@
-# PointPilot Companion — Chrome Extension (MV3)
 
-A small browser extension that, when you visit your loyalty program's website while logged in, reads your point balance off the page and syncs it to your PointPilot account.
+# Plan: Make the Extension Feel Like a One-Stop Shop
 
-## What it does
+Goal: minimize user effort. Today the user has to (1) visit each loyalty site, (2) open the popup, (3) click **Sync**. We'll cut that to "visit the site — everything else happens by itself," and broaden coverage so a single visit-cycle captures most of a traveler's points.
 
-1. You install the unpacked extension (downloaded as a zip from PointPilot).
-2. You sign in to PointPilot once inside the extension popup (same email/password as the web app).
-3. You visit marriott.com, jetblue.com, delta.com, etc. while logged in to that program.
-4. A content script detects the balance on the page, the popup shows it, and one click syncs it to your `reward_accounts` row.
+## 1. Auto-sync on detection (kill the Sync button for trusted matches)
 
-No password sharing with PointPilot, no scraping behind login walls — the extension only reads what's already rendered in your own browser tab.
+- When a content script reports a balance with **confidence ≥ 0.85**, the background worker syncs it to the backend automatically — no popup interaction needed.
+- Balances with confidence 0.6–0.85 sync automatically only if the value is **unchanged from a previous high-confidence reading** (sanity check).
+- Low-confidence (<0.6) balances still require a manual click in the popup, shown with a "Needs review" badge.
+- Popup still lets the user force a sync, and shows a small "Last auto-synced 2 min ago" line per program.
 
-## Programs supported in v1
+## 2. Background session keep-alive + per-program sync state
 
-| Program            | URL pattern                  | Balance selector strategy                          |
-|--------------------|------------------------------|----------------------------------------------------|
-| Marriott Bonvoy    | `*://*.marriott.com/*`       | Account header / loyalty dashboard text match      |
-| JetBlue TrueBlue   | `*://*.jetblue.com/*`        | Profile dropdown points node                       |
-| Delta SkyMiles     | `*://*.delta.com/*`          | Header SkyMiles balance node                       |
+- New `chrome.storage.local` entry: `sync_state[program] = { lastValue, lastSyncedAt, lastConfidence, lastUrl }`.
+- Background worker dedupes: if value + confidence haven't improved since last sync, skip the network call.
+- Adds a tiny badge on the extension icon: green dot when everything is fresh (<30 days), amber when stale, red on sync failure.
 
-Each site uses regex fallbacks (e.g. `/([\d,]+)\s*(points|miles)/i`) so we degrade gracefully if a class name changes. Detection runs on DOM mutations so it works on SPA navigation.
+## 3. Expand program coverage
 
-## Architecture
+Add content scripts + parsers for the highest-value programs travelers actually hold:
 
-```text
-extension/
-├── manifest.json          MV3, permissions: storage, activeTab, scripting,
-│                          host_permissions for the 3 program domains
-├── popup.html / popup.js  Sign-in form + detected balance + Sync button
-├── popup.css
-├── background.js          Service worker: PointPilot auth token storage,
-│                          message router between content script and popup
-├── content/
-│   ├── marriott.js        Per-site DOM readers
-│   ├── jetblue.js
-│   └── delta.js
-├── lib/
-│   ├── api.js             Calls Lovable Cloud (Supabase REST) with user JWT
-│   └── parsers.js         Shared number/regex helpers
-└── icon.png               48 / 128
-```
+- **Hotels:** Hilton Honors, World of Hyatt, IHG One Rewards, Wyndham, Choice.
+- **Airlines:** United MileagePlus, American AAdvantage, Alaska Mileage Plan, Southwest Rapid Rewards.
+- **Transferable currencies:** Amex Membership Rewards, Chase Ultimate Rewards, Capital One Miles, Citi ThankYou, Bilt.
 
-### Auth flow
-- Popup posts email + password to `${SUPABASE_URL}/auth/v1/token?grant_type=password` using the publishable key.
-- Access + refresh tokens stored in `chrome.storage.local`.
-- Background service worker refreshes the token before expiry.
+Each follows the existing pattern (selectors → aria → JSON blocks → label proximity → regex), with confidence scoring already in place.
 
-### Sync flow
-- Content script finds balance → `chrome.runtime.sendMessage({ type: "BALANCE_FOUND", program, balance })`.
-- Popup reads via `chrome.storage.session` and shows "Marriott Bonvoy: 84,250 pts → Sync".
-- On Sync: `PATCH /rest/v1/reward_accounts?user_id=eq.<uid>&program=eq.Marriott%20Bonvoy` with `{ balance }`. If no row exists yet, INSERT one with the matching `program_type`.
+## 4. "Open all my programs" power action
 
-### Security
-- Only the publishable anon key is bundled (safe to ship).
-- Host permissions are limited to the three program domains — no broad `<all_urls>`.
-- No DOM content is sent off-device; only the parsed integer balance + program name leave the browser.
-- RLS on `reward_accounts` already restricts writes to `auth.uid() = user_id`, so a stolen token can only touch that user's rows.
+- New popup button: **Refresh all** → opens each registered program's balance page in background tabs, lets the content script detect + auto-sync, then closes the tab.
+- Uses `chrome.tabs.create({ active: false })` and a 15-second timeout per tab.
+- One click → every balance refreshed. Closest thing to a true "one button to rule them all" without storing credentials.
 
-## PointPilot web-app changes
+## 5. Staleness nudges
 
-1. **Download page** (`/extension` route): one-button download served from `/public/pointpilot-extension.zip`, with the 4-step "Load unpacked" install instructions.
-2. **Header link**: small "Get extension" link in `SiteHeader` next to "Methodology".
-3. **Account page**: a new "Last synced" timestamp column on each `reward_accounts` row + a small "via extension" badge when the row was updated by the extension.
-4. **DB migration**: add `last_synced_at timestamptz` and `last_sync_source text` columns to `reward_accounts` (nullable, no RLS change needed).
+- If a program hasn't synced in 30+ days, show it at the top of the popup with a **"Refresh now"** link that opens that program's site in a new tab. (Cheaper, less spammy than browser notifications.)
+- Optional notification toggle (off by default) for users who want push reminders.
 
-## Build steps (in order)
+## 6. Onboarding & install polish
 
-1. Migration: add `last_synced_at`, `last_sync_source` to `reward_accounts`.
-2. Create `extension/` folder with manifest, popup, background, content scripts, shared lib.
-3. Wire content scripts to detect balances on the three domains with regex fallbacks.
-4. Wire popup auth → Supabase REST → write to `reward_accounts`.
-5. Package: `nix run nixpkgs#zip -- -r /dev-server/public/pointpilot-extension.zip .` from `extension/`.
-6. Add `/extension` route in PointPilot with fetch+blob download button and install instructions.
-7. Add "Get extension" link to `SiteHeader`.
-8. Update `/account` to show "Last synced" + sync source.
+- First-run popup state: short checklist showing which programs are detected vs. not yet seen, with one-click links to each program's balance page.
+- Re-package `public/pointpilot-extension.zip` so the marketing site download stays current.
 
-## Out of scope for v1
+---
 
-- Award availability lookup (programs don't expose it on logged-in pages consistently).
-- Auto-booking or deep-linking into award search.
-- Hilton, Hyatt, United, American — easy to add later by dropping a new content script + host permission.
-- Firefox build (manifest tweaks needed; Chrome/Edge/Brave/Arc/Opera all work from this build).
+## Technical notes (for the build phase)
 
-## Risks / honest caveats
+**Files touched:**
+- `extension/background.js` — auto-sync logic, badge state, sync_state cache.
+- `extension/lib/config.js` — register new programs (slug, name, type, balance URL).
+- `extension/content/<program>.js` — one file per new program (hilton, hyatt, ihg, united, aa, alaska, southwest, wyndham, choice, amex-mr, chase-ur, capitalone, citi, bilt).
+- `extension/lib/parsers.js` — small helper: `autoSyncIfConfident(hit, program)` posting straight to the backend via stored session token (already wired in popup.js — we'll extract `pgFetch` + `syncBalance` into `extension/lib/api.js` so background.js can call them too).
+- `extension/popup.html` / `popup.js` / `popup.css` — "Refresh all" button, staleness section, auto-sync indicator.
+- `extension/manifest.json` — add host_permissions for each new program domain.
+- `public/pointpilot-extension.zip` — repackage.
+- `src/routes/account.tsx` — show "Auto-synced" vs "Manually synced" badge next to `last_sync_source` (purely cosmetic — schema already has the column).
 
-- DOM selectors WILL break when programs redesign their sites. The regex fallback helps but isn't bulletproof — expect to ship occasional content-script updates.
-- Some programs render balances inside Shadow DOM or behind additional clicks; v1 reads what's on the visible page after load + 2s delay.
-- This is not an "official" integration — it's a personal-use convenience tool. We'll say so on the download page.
+**No DB migration required.** All metadata columns we need (`last_sync_source`, `last_sync_method`, `last_sync_confidence`, etc.) already exist.
 
-After you approve, I'll build the migration + extension + download page + zip in one pass.
+**Auth:** session token is already persisted in `chrome.storage.local` by `popup.js`. Background worker will reuse `refreshIfNeeded()` from the shared `api.js` module — no new credential handling.
+
+**Scope guard:** This plan is extension-only + a tiny cosmetic tweak on the account page. No backend, schema, or auth changes.
+
+---
+
+## Out of scope (per your answers)
+
+- Gmail OAuth email parsing — parked for a later phase.
+- AwardWallet/aggregator API — parked.
+- Server-side scraping with stored credentials — you're open to it long-term, but we'll revisit once the extension is fully polished; it's a much bigger security/legal lift and shouldn't block UX improvements.
+
+Want me to build this as one batch, or split it (1–2 first, then coverage, then "Refresh all")?
