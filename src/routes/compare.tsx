@@ -4,17 +4,26 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ComparisonWizard, type WizardData } from "@/components/ComparisonWizard";
 import { StrategyCard } from "@/components/StrategyCard";
 import { Button } from "@/components/ui/button";
-import { calculateStrategies, rankStrategies, type Strategy, type RankMode } from "@/lib/comparison-engine";
+import {
+  calculateStrategies,
+  rankStrategies,
+  type Strategy,
+  type RankMode,
+} from "@/lib/comparison-engine";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Bookmark } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/compare")({
   head: () => ({
     meta: [
       { title: "New comparison · PointPilot" },
-      { name: "description", content: "Enter your trip and reward balances to compare booking strategies." },
+      {
+        name: "description",
+        content: "Enter your trip and reward balances to compare booking strategies.",
+      },
     ],
   }),
   component: Compare,
@@ -34,11 +43,18 @@ function Compare() {
     if (!user) return;
     (async () => {
       const [{ data: accs }, { data: prof }] = await Promise.all([
-        supabase.from("reward_accounts").select("program, program_type, balance").eq("user_id", user.id),
+        supabase
+          .from("reward_accounts")
+          .select("program, program_type, balance")
+          .eq("user_id", user.id),
         supabase.from("profiles").select("preference").eq("id", user.id).maybeSingle(),
       ]);
       setInitial({
-        accounts: (accs ?? []).map((a) => ({ program: a.program, program_type: a.program_type as "airline" | "hotel" | "credit_card" | "telecom", balance: Number(a.balance) })),
+        accounts: (accs ?? []).map((a) => ({
+          program: a.program,
+          program_type: a.program_type as "airline" | "hotel" | "credit_card" | "telecom",
+          balance: Number(a.balance),
+        })),
         preference: (prof?.preference as "maximize_value" | "minimize_cash") ?? "maximize_value",
       });
     })();
@@ -56,7 +72,9 @@ function Compare() {
 
   const saveTrip = async () => {
     if (!user || !data) {
-      toast("Sign in to save trips", { description: "Create a free account to keep your comparisons." });
+      toast("Sign in to save trips", {
+        description: "Create a free account to keep your comparisons.",
+      });
       return;
     }
     setSaving(true);
@@ -150,6 +168,15 @@ function Compare() {
                 </Button>
               </div>
             </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="outline" className="rounded-full">
+                Estimated pricing
+              </Badge>
+              <span>
+                Confirm live price, award availability, final fees, and cancellation terms before
+                booking.
+              </span>
+            </div>
 
             <div className="mt-6 grid gap-4">
               {ranked.map((s, i) => (
@@ -157,7 +184,13 @@ function Compare() {
                   key={s.id}
                   strategy={s}
                   rank={i + 1}
-                  highlight={i === 0 ? (mode === "value" ? "Best per-point value" : "Lowest cash out") : undefined}
+                  highlight={
+                    i === 0
+                      ? mode === "value"
+                        ? "Best per-point value"
+                        : "Lowest cash out"
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -168,7 +201,10 @@ function Compare() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   Sign in once and we'll remember your programs and balances next time.
                 </p>
-                <Button onClick={() => navigate({ to: "/auth" })} className="mt-4 rounded-full bg-foreground text-background hover:bg-foreground/90">
+                <Button
+                  onClick={() => navigate({ to: "/auth" })}
+                  className="mt-4 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                >
                   Create a free account
                 </Button>
               </div>

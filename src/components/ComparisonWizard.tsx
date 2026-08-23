@@ -6,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Check } from "lucide-react";
-import type { TripInput, RewardAccount, ProgramType } from "@/lib/comparison-engine";
+import type { TripInput, RewardAccount } from "@/lib/comparison-engine";
+import { PROGRAMS } from "@/lib/programs";
 
 export interface WizardData {
   trip: TripInput;
@@ -14,19 +15,7 @@ export interface WizardData {
   preference: "maximize_value" | "minimize_cash";
 }
 
-const PROGRAM_PRESETS: { name: string; type: ProgramType }[] = [
-  { name: "Delta SkyMiles", type: "airline" },
-  { name: "JetBlue TrueBlue", type: "airline" },
-  { name: "United MileagePlus", type: "airline" },
-  { name: "American AAdvantage", type: "airline" },
-  { name: "Marriott Bonvoy", type: "hotel" },
-  { name: "Hilton Honors", type: "hotel" },
-  { name: "Hyatt", type: "hotel" },
-  { name: "Chase Ultimate Rewards", type: "credit_card" },
-  { name: "Amex Membership Rewards", type: "credit_card" },
-  { name: "Capital One Venture", type: "credit_card" },
-  { name: "T-Mobile Travel", type: "telecom" },
-];
+const PROGRAM_PRESETS = PROGRAMS.map((p) => ({ name: p.name, type: p.type }));
 
 const STEPS = ["Trip", "Rewards", "Preferences"] as const;
 
@@ -50,7 +39,9 @@ export function ComparisonWizard({
     },
   );
   const [accounts, setAccounts] = useState<RewardAccount[]>(initial?.accounts ?? []);
-  const [preference, setPreference] = useState<WizardData["preference"]>(initial?.preference ?? "maximize_value");
+  const [preference, setPreference] = useState<WizardData["preference"]>(
+    initial?.preference ?? "maximize_value",
+  );
 
   const canNext = () => {
     if (step === 0) return trip.origin && trip.destination && trip.departDate;
@@ -83,7 +74,11 @@ export function ComparisonWizard({
           >
             <ArrowLeft className="mr-1.5 h-4 w-4" /> Back
           </Button>
-          <Button onClick={next} disabled={!canNext()} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
+          <Button
+            onClick={next}
+            disabled={!canNext()}
+            className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+          >
             {step === STEPS.length - 1 ? (
               <>
                 Compare strategies <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -138,7 +133,9 @@ function TripStep({ trip, setTrip }: { trip: TripInput; setTrip: (t: TripInput) 
   return (
     <div>
       <h2 className="font-display text-2xl font-semibold tracking-tight">Where to?</h2>
-      <p className="mt-1 text-sm text-muted-foreground">A few details so we can price every option.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        A few details so we can price every option.
+      </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
@@ -147,7 +144,9 @@ function TripStep({ trip, setTrip }: { trip: TripInput; setTrip: (t: TripInput) 
             id="origin"
             placeholder="JFK"
             value={trip.origin}
-            onChange={(e) => setTrip({ ...trip, origin: e.target.value.toUpperCase().slice(0, 30) })}
+            onChange={(e) =>
+              setTrip({ ...trip, origin: e.target.value.toUpperCase().slice(0, 30) })
+            }
           />
         </div>
         <div className="space-y-1.5">
@@ -156,7 +155,9 @@ function TripStep({ trip, setTrip }: { trip: TripInput; setTrip: (t: TripInput) 
             id="dest"
             placeholder="LIS"
             value={trip.destination}
-            onChange={(e) => setTrip({ ...trip, destination: e.target.value.toUpperCase().slice(0, 30) })}
+            onChange={(e) =>
+              setTrip({ ...trip, destination: e.target.value.toUpperCase().slice(0, 30) })
+            }
           />
         </div>
         <div className="space-y-1.5">
@@ -185,7 +186,12 @@ function TripStep({ trip, setTrip }: { trip: TripInput; setTrip: (t: TripInput) 
             min={1}
             max={9}
             value={trip.travelers}
-            onChange={(e) => setTrip({ ...trip, travelers: Math.max(1, Math.min(9, parseInt(e.target.value) || 1)) })}
+            onChange={(e) =>
+              setTrip({
+                ...trip,
+                travelers: Math.max(1, Math.min(9, parseInt(e.target.value) || 1)),
+              })
+            }
           />
         </div>
         <div className="space-y-1.5">
@@ -201,12 +207,24 @@ function TripStep({ trip, setTrip }: { trip: TripInput; setTrip: (t: TripInput) 
 
       <div className="mt-6 flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="hotel" className="cursor-pointer">Include hotel</Label>
-          <Switch id="hotel" checked={trip.needsHotel} onCheckedChange={(v) => setTrip({ ...trip, needsHotel: v })} />
+          <Label htmlFor="hotel" className="cursor-pointer">
+            Include hotel
+          </Label>
+          <Switch
+            id="hotel"
+            checked={trip.needsHotel}
+            onCheckedChange={(v) => setTrip({ ...trip, needsHotel: v })}
+          />
         </div>
         <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="car" className="cursor-pointer">Include rental car</Label>
-          <Switch id="car" checked={trip.needsCar} onCheckedChange={(v) => setTrip({ ...trip, needsCar: v })} />
+          <Label htmlFor="car" className="cursor-pointer">
+            Include rental car
+          </Label>
+          <Switch
+            id="car"
+            checked={trip.needsCar}
+            onCheckedChange={(v) => setTrip({ ...trip, needsCar: v })}
+          />
         </div>
       </div>
     </div>
@@ -226,15 +244,21 @@ function RewardsStep({
     <div>
       <h2 className="font-display text-2xl font-semibold tracking-tight">Your reward accounts</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Tell us which programs you have and your current balance. Skip if you'd rather see all options.
+        Tell us which programs you have and your current balance. Skip if you'd rather see all
+        options.
       </p>
 
       <div className="mt-6 space-y-2">
         {accounts.map((acc, i) => (
-          <div key={acc.program} className="flex items-center gap-2 rounded-xl border border-border/60 bg-background p-2 pl-4">
+          <div
+            key={acc.program}
+            className="flex items-center gap-2 rounded-xl border border-border/60 bg-background p-2 pl-4"
+          >
             <div className="flex-1">
               <div className="text-sm font-medium">{acc.program}</div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">{acc.program_type}</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                {acc.program_type}
+              </div>
             </div>
             <Input
               type="number"
@@ -262,12 +286,16 @@ function RewardsStep({
 
       {remaining.length > 0 && (
         <div className="mt-5">
-          <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Add a program</div>
+          <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+            Add a program
+          </div>
           <div className="flex flex-wrap gap-2">
             {remaining.map((p) => (
               <button
                 key={p.name}
-                onClick={() => setAccounts([...accounts, { program: p.name, program_type: p.type, balance: 0 }])}
+                onClick={() =>
+                  setAccounts([...accounts, { program: p.name, program_type: p.type, balance: 0 }])
+                }
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-primary hover:bg-primary/5 hover:text-foreground"
               >
                 <Plus className="h-3 w-3" /> {p.name}
@@ -290,31 +318,45 @@ function PreferenceStep({
   return (
     <div>
       <h2 className="font-display text-2xl font-semibold tracking-tight">How should we rank?</h2>
-      <p className="mt-1 text-sm text-muted-foreground">We'll surface the strategy that wins on your goal.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        We'll surface the strategy that wins on your goal.
+      </p>
 
-      <RadioGroup value={preference} onValueChange={(v) => setPreference(v as WizardData["preference"])} className="mt-6 grid gap-3">
+      <RadioGroup
+        value={preference}
+        onValueChange={(v) => setPreference(v as WizardData["preference"])}
+        className="mt-6 grid gap-3"
+      >
         <Label
           htmlFor="pref-value"
           className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all ${
-            preference === "maximize_value" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-foreground/30"
+            preference === "maximize_value"
+              ? "border-primary bg-primary/5"
+              : "border-border bg-background hover:border-foreground/30"
           }`}
         >
           <RadioGroupItem id="pref-value" value="maximize_value" className="mt-0.5" />
           <div>
             <div className="font-medium">Maximize value per point</div>
-            <div className="text-sm text-muted-foreground">Get the highest cents-per-point. Best when you have lots of points to burn.</div>
+            <div className="text-sm text-muted-foreground">
+              Get the highest cents-per-point. Best when you have lots of points to burn.
+            </div>
           </div>
         </Label>
         <Label
           htmlFor="pref-cash"
           className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all ${
-            preference === "minimize_cash" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-foreground/30"
+            preference === "minimize_cash"
+              ? "border-primary bg-primary/5"
+              : "border-border bg-background hover:border-foreground/30"
           }`}
         >
           <RadioGroupItem id="pref-cash" value="minimize_cash" className="mt-0.5" />
           <div>
             <div className="font-medium">Minimize out-of-pocket</div>
-            <div className="text-sm text-muted-foreground">Lowest cash today, even if the per-point value is lower.</div>
+            <div className="text-sm text-muted-foreground">
+              Lowest cash today, even if the per-point value is lower.
+            </div>
           </div>
         </Label>
       </RadioGroup>

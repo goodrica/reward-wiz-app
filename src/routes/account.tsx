@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import type { ProgramType } from "@/lib/comparison-engine";
+import { PROGRAMS, freshnessLabel } from "@/lib/programs";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -42,19 +43,10 @@ interface SavedTrip {
   created_at: string;
 }
 
-const PRESETS: { name: string; type: ProgramType }[] = [
-  { name: "Delta SkyMiles", type: "airline" },
-  { name: "JetBlue TrueBlue", type: "airline" },
-  { name: "United MileagePlus", type: "airline" },
-  { name: "American AAdvantage", type: "airline" },
-  { name: "Marriott Bonvoy", type: "hotel" },
-  { name: "Hilton Honors", type: "hotel" },
-  { name: "Hyatt", type: "hotel" },
-  { name: "Chase Ultimate Rewards", type: "credit_card" },
-  { name: "Amex Membership Rewards", type: "credit_card" },
-  { name: "Capital One Venture", type: "credit_card" },
-  { name: "T-Mobile Travel", type: "telecom" },
-];
+const PRESETS: { name: string; type: ProgramType }[] = PROGRAMS.map((p) => ({
+  name: p.name,
+  type: p.type,
+}));
 
 function Account() {
   const { user, loading } = useAuth();
@@ -72,7 +64,11 @@ function Account() {
     (async () => {
       const [{ data: accs }, { data: tr }, { data: prof }] = await Promise.all([
         supabase.from("reward_accounts").select("*").eq("user_id", user.id).order("program_type"),
-        supabase.from("saved_trips").select("id, origin, destination, depart_date, return_date, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase
+          .from("saved_trips")
+          .select("id, origin, destination, depart_date, return_date, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
         supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
       ]);
       setAccounts((accs ?? []) as AccountRow[]);
@@ -94,7 +90,11 @@ function Account() {
 
   const updateBalance = async (id: string, balance: number) => {
     const now = new Date().toISOString();
-    setAccounts((a) => a.map((r) => (r.id === id ? { ...r, balance, last_synced_at: now, last_sync_source: "manual" } : r)));
+    setAccounts((a) =>
+      a.map((r) =>
+        r.id === id ? { ...r, balance, last_synced_at: now, last_sync_source: "manual" } : r,
+      ),
+    );
     const { error } = await supabase
       .from("reward_accounts")
       .update({ balance, last_synced_at: now, last_sync_source: "manual" })
@@ -126,7 +126,7 @@ function Account() {
         last_sync_confidence: acc.last_sync_confidence,
       },
       null,
-      2
+      2,
     );
 
   const copyDetectionJson = async (acc: AccountRow) => {
@@ -165,17 +165,23 @@ function Account() {
       <SiteHeader />
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <div className="mb-10">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">Your profile</div>
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">
+            Your profile
+          </div>
           <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight">
             {name ? `Hi, ${name}.` : "My rewards"}
           </h1>
-          <p className="mt-1 text-muted-foreground">Keep balances current so we recommend strategies you can actually book.</p>
+          <p className="mt-1 text-muted-foreground">
+            Keep balances current so we recommend strategies you can actually book.
+          </p>
         </div>
 
         <section className="mb-12">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-xl font-semibold tracking-tight">Reward accounts</h2>
-            <span className="text-xs text-muted-foreground">{accounts.length} program{accounts.length === 1 ? "" : "s"}</span>
+            <span className="text-xs text-muted-foreground">
+              {accounts.length} program{accounts.length === 1 ? "" : "s"}
+            </span>
           </div>
 
           <Card className="divide-y divide-border/60 border-border/60 bg-card p-0 shadow-soft">
@@ -194,11 +200,12 @@ function Account() {
                         auto-synced
                       </span>
                     )}
-                    {acc.last_sync_source?.startsWith("extension") && acc.last_sync_source !== "extension-auto" && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
-                        via extension
-                      </span>
-                    )}
+                    {acc.last_sync_source?.startsWith("extension") &&
+                      acc.last_sync_source !== "extension-auto" && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
+                          via extension
+                        </span>
+                      )}
                     {acc.last_sync_source === "manual" && (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                         manual
@@ -207,58 +214,75 @@ function Account() {
                   </div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground">
                     {acc.program_type}
+                    <span className="ml-2 normal-case tracking-normal">
+                      · {freshnessLabel(acc.last_synced_at)}
+                    </span>
                     {acc.last_synced_at && (
                       <span className="ml-2 normal-case tracking-normal">
                         · synced {new Date(acc.last_synced_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
-                  {acc.last_sync_source?.startsWith("extension") && (acc.last_sync_method || acc.last_sync_url) && (
-                    <details className="mt-1 text-[11px] text-muted-foreground">
-                      <summary className="cursor-pointer select-none hover:text-foreground">Detection details</summary>
-                      <div className="mt-1 space-y-0.5 font-mono">
-                        {acc.last_sync_confidence != null && (
-                          <div>confidence: {Math.round(acc.last_sync_confidence * 100)}%</div>
-                        )}
-                        {acc.last_sync_method && <div>method: {acc.last_sync_method}</div>}
-                        {acc.last_sync_detail && <div className="break-all">detail: {acc.last_sync_detail}</div>}
-                        {acc.last_sync_url && (
-                          <div className="break-all">
-                            url:{" "}
-                            <a href={acc.last_sync_url} target="_blank" rel="noreferrer" className="underline">
-                              {acc.last_sync_url}
-                            </a>
+                  {acc.last_sync_source?.startsWith("extension") &&
+                    (acc.last_sync_method || acc.last_sync_url) && (
+                      <details className="mt-1 text-[11px] text-muted-foreground">
+                        <summary className="cursor-pointer select-none hover:text-foreground">
+                          Detection details
+                        </summary>
+                        <div className="mt-1 space-y-0.5 font-mono">
+                          {acc.last_sync_confidence != null && (
+                            <div>confidence: {Math.round(acc.last_sync_confidence * 100)}%</div>
+                          )}
+                          {acc.last_sync_method && <div>method: {acc.last_sync_method}</div>}
+                          {acc.last_sync_detail && (
+                            <div className="break-all">detail: {acc.last_sync_detail}</div>
+                          )}
+                          {acc.last_sync_url && (
+                            <div className="break-all">
+                              url:{" "}
+                              <a
+                                href={acc.last_sync_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline"
+                              >
+                                {acc.last_sync_url}
+                              </a>
+                            </div>
+                          )}
+                          <div className="mt-2 flex gap-2 font-sans">
+                            <button
+                              type="button"
+                              onClick={() => copyDetectionJson(acc)}
+                              className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
+                            >
+                              Copy JSON
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => downloadDetectionJson(acc)}
+                              className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
+                            >
+                              Download JSON
+                            </button>
                           </div>
-                        )}
-                        <div className="mt-2 flex gap-2 font-sans">
-                          <button
-                            type="button"
-                            onClick={() => copyDetectionJson(acc)}
-                            className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
-                          >
-                            Copy JSON
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => downloadDetectionJson(acc)}
-                            className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-accent"
-                          >
-                            Download JSON
-                          </button>
                         </div>
-                      </div>
-                    </details>
-                  )}
+                      </details>
+                    )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Label htmlFor={`bal-${acc.id}`} className="sr-only">Balance</Label>
+                  <Label htmlFor={`bal-${acc.id}`} className="sr-only">
+                    Balance
+                  </Label>
                   <Input
                     id={`bal-${acc.id}`}
                     type="number"
                     min={0}
                     value={acc.balance || ""}
                     placeholder="0"
-                    onChange={(e) => updateBalance(acc.id, Math.max(0, parseInt(e.target.value) || 0))}
+                    onChange={(e) =>
+                      updateBalance(acc.id, Math.max(0, parseInt(e.target.value) || 0))
+                    }
                     className="w-32 text-right font-mono"
                   />
                   <span className="text-xs text-muted-foreground">pts</span>
@@ -277,7 +301,9 @@ function Account() {
 
           {remaining.length > 0 && (
             <div className="mt-4">
-              <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Add a program</div>
+              <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+                Add a program
+              </div>
               <div className="flex flex-wrap gap-2">
                 {remaining.map((p) => (
                   <button

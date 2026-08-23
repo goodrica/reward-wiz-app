@@ -5,12 +5,15 @@
  * Calculates real cents-per-point value for each strategy so users can compare apples to apples.
  */
 
+import { balanceFor, programNamesMatch } from "@/lib/programs";
+
 export type ProgramType = "airline" | "hotel" | "credit_card" | "telecom";
 
 export interface RewardAccount {
   program: string;
   program_type: ProgramType;
   balance: number;
+  last_synced_at?: string | null;
 }
 
 export interface TripInput {
@@ -107,9 +110,10 @@ export function getBenchmarkCpp(program: string): number | undefined {
  * the program's published baseline value per point. Below that, paying
  * cash and saving the points usually wins.
  */
-export function compareToBenchmark(actualCpp: number, program?: string):
-  | { status: "above" | "at" | "below"; benchmark: number; deltaPct: number }
-  | null {
+export function compareToBenchmark(
+  actualCpp: number,
+  program?: string,
+): { status: "above" | "at" | "below"; benchmark: number; deltaPct: number } | null {
   if (!program) return null;
   const benchmark = getBenchmarkCpp(program);
   if (!benchmark || actualCpp <= 0) return null;
@@ -118,9 +122,12 @@ export function compareToBenchmark(actualCpp: number, program?: string):
   return { status, benchmark, deltaPct };
 }
 
-function pickProgram<T extends { name: string }>(list: T[], owned: RewardAccount[], seed: number): T {
-  const ownedNames = new Set(owned.map((a) => a.program));
-  const ownedMatch = list.find((p) => ownedNames.has(p.name));
+function pickProgram<T extends { name: string }>(
+  list: T[],
+  owned: RewardAccount[],
+  seed: number,
+): T {
+  const ownedMatch = list.find((p) => owned.some((a) => programNamesMatch(a.program, p.name)));
   if (ownedMatch) return ownedMatch;
   return list[Math.floor(seed * list.length)];
 }
@@ -134,7 +141,12 @@ function flightCash(trip: TripInput): number {
 
 function hotelCash(trip: TripInput): number {
   if (!trip.needsHotel || !trip.returnDate) return 0;
-  const nights = Math.max(1, Math.round((new Date(trip.returnDate).getTime() - new Date(trip.departDate).getTime()) / 86400000));
+  const nights = Math.max(
+    1,
+    Math.round(
+      (new Date(trip.returnDate).getTime() - new Date(trip.departDate).getTime()) / 86400000,
+    ),
+  );
   const seed = hashSeed(trip.destination, "hotel");
   const nightly = 140 + seed * 260;
   return Math.round(nightly * nights);
@@ -142,7 +154,12 @@ function hotelCash(trip: TripInput): number {
 
 function carCash(trip: TripInput): number {
   if (!trip.needsCar || !trip.returnDate) return 0;
-  const days = Math.max(1, Math.round((new Date(trip.returnDate).getTime() - new Date(trip.departDate).getTime()) / 86400000));
+  const days = Math.max(
+    1,
+    Math.round(
+      (new Date(trip.returnDate).getTime() - new Date(trip.departDate).getTime()) / 86400000,
+    ),
+  );
   const seed = hashSeed(trip.destination, "car");
   const daily = 45 + seed * 55;
   return Math.round(daily * days);
@@ -153,8 +170,17 @@ function pointsFor(cash: number, cpp: number): number {
   return Math.round((cash * 100) / cpp);
 }
 
-function balanceOf(accounts: RewardAccount[], program: string): number {
-  return accounts.find((a) => a.program === program)?.balance ?? 0;
+function balanceOf(accounts: RewardAccount[], program: string): number | undefined {
+  return balanceFor(accounts, program);
+}
+
+function hasEnoughKnownBalance(
+  accounts: RewardAccount[],
+  program: string,
+  required: number,
+): boolean {
+  const balance = balanceOf(accounts, program);
+  return balance !== undefined && balance >= required;
 }
 
 // --- Strategy builders ----------------------------------------------------
@@ -174,7 +200,6 @@ export function calculateStrategies(trip: TripInput, accounts: RewardAccount[]):
 
   const flightPoints = pointsFor(flightCashCost, flightProg.baseCpp);
   const hotelPoints = trip.needsHotel ? pointsFor(hotelCashCost, hotelProg.baseCpp) : 0;
-  const portalPoints = pointsFor(flightCashCost + hotelCashCost + carCashCost, portalProg.baseCpp);
 
   const totalCashAll = flightCashCost + hotelCashCost + carCashCost;
 
@@ -186,43 +211,94 @@ export function calculateStrategies(trip: TripInput, accounts: RewardAccount[]):
     title: "Pay all cash",
     subtitle: "Keep every point. Earn miles on the spend.",
     legs: [
-      { type: "flight", provider: trip.preferredAirline || "Best fare airline", cashCost: flightCashCost, pointsCost: 0, fees: 0 },
-      ...(trip.needsHotel ? [{ type: "hotel" as const, provider: trip.preferredHotel || "Best rate hotel", cashCost: hotelCashCost, pointsCost: 0, fees: 0 }] : []),
-      ...(trip.needsCar ? [{ type: "car" as const, provider: "Standard rental", cashCost: carCashCost, pointsCost: 0, fees: 0 }] : []),
+      {
+        type: "flight",
+        provider: trip.preferredAirline || "Best fare airline",
+        cashCost: flightCashCost,
+        pointsCost: 0,
+        fees: 0,
+      },
+      ...(trip.needsHotel
+        ? [
+            {
+              type: "hotel" as const,
+              provider: trip.preferredHotel || "Best rate hotel",
+              cashCost: hotelCashCost,
+              pointsCost: 0,
+              fees: 0,
+            },
+          ]
+        : []),
+      ...(trip.needsCar
+        ? [
+            {
+              type: "car" as const,
+              provider: "Standard rental",
+              cashCost: carCashCost,
+              pointsCost: 0,
+              fees: 0,
+            },
+          ]
+        : []),
     ],
     totalCash: totalCashAll,
     totalPoints: 0,
     pointsProgramBreakdown: {},
     centsPerPoint: 0,
     feasible: true,
-    perks: ["Earns elite-qualifying miles", "Full cancellation flexibility", "Bank credit-card rewards on the spend"],
+    perks: [
+      "Earns elite-qualifying miles",
+      "Full cancellation flexibility",
+      "Bank credit-card rewards on the spend",
+    ],
     tradeoffs: ["Highest out-of-pocket", "No points used"],
     tags: ["baseline"],
   });
 
   // 2. All points (split bookings — best CPP per category)
   const allPointsLegs: StrategyLeg[] = [
-    { type: "flight", provider: flightProg.name, cashCost: 11.20 * trip.travelers, pointsCost: flightPoints, pointsProgram: flightProg.name, fees: 11.20 * trip.travelers },
+    {
+      type: "flight",
+      provider: flightProg.name,
+      cashCost: 11.2 * trip.travelers,
+      pointsCost: flightPoints,
+      pointsProgram: flightProg.name,
+      fees: 11.2 * trip.travelers,
+    },
   ];
   if (trip.needsHotel) {
-    allPointsLegs.push({ type: "hotel", provider: hotelProg.name, cashCost: 0, pointsCost: hotelPoints, pointsProgram: hotelProg.name, fees: 0 });
+    allPointsLegs.push({
+      type: "hotel",
+      provider: hotelProg.name,
+      cashCost: 0,
+      pointsCost: hotelPoints,
+      pointsProgram: hotelProg.name,
+      fees: 0,
+    });
   }
   if (trip.needsCar) {
     // Cars rarely offer good point redemptions — fall back to cash
-    allPointsLegs.push({ type: "car", provider: "Standard rental (cash)", cashCost: carCashCost, pointsCost: 0, fees: 0 });
+    allPointsLegs.push({
+      type: "car",
+      provider: "Standard rental (cash)",
+      cashCost: carCashCost,
+      pointsCost: 0,
+      fees: 0,
+    });
   }
   const allPointsCash = allPointsLegs.reduce((s, l) => s + l.cashCost, 0);
   const allPointsBreakdown: Record<string, number> = {};
   allPointsLegs.forEach((l) => {
     if (l.pointsProgram && l.pointsCost) {
-      allPointsBreakdown[l.pointsProgram] = (allPointsBreakdown[l.pointsProgram] ?? 0) + l.pointsCost;
+      allPointsBreakdown[l.pointsProgram] =
+        (allPointsBreakdown[l.pointsProgram] ?? 0) + l.pointsCost;
     }
   });
   const allPointsValueSaved = totalCashAll - allPointsCash;
   const totalAllPoints = flightPoints + hotelPoints;
   const allPointsCpp = totalAllPoints > 0 ? (allPointsValueSaved * 100) / totalAllPoints : 0;
-  const allPointsFeasible = Object.entries(allPointsBreakdown).every(
-    ([prog, pts]) => balanceOf(accounts, prog) === 0 || balanceOf(accounts, prog) >= pts,
+  const allPointsFeasible = Object.entries(allPointsBreakdown).every(([prog, pts]) =>
+    hasEnoughKnownBalance(accounts, prog, pts),
   );
   strategies.push({
     id: "all-points",
@@ -234,25 +310,58 @@ export function calculateStrategies(trip: TripInput, accounts: RewardAccount[]):
     pointsProgramBreakdown: allPointsBreakdown,
     centsPerPoint: allPointsCpp,
     feasible: allPointsFeasible,
-    feasibilityReason: allPointsFeasible ? undefined : "Insufficient balance in one or more programs",
+    feasibilityReason: allPointsFeasible
+      ? undefined
+      : "Insufficient balance in one or more programs",
     perks: ["Best per-point value", "Award availability lets you skip peak pricing"],
     tradeoffs: ["Award seats limited — book early", "Mileage flights still owe taxes & fees"],
     tags: ["best-value"],
   });
 
   // 3. Credit-card portal (one-stop)
-  const portalCash = totalCashAll * 0.05; // small surcharge
-  const portalSavings = totalCashAll - portalCash;
+  const portalRateCpp = 1.25;
+  const portalCash = 0;
+  const portalSavings = totalCashAll;
+  const portalPoints = pointsFor(totalCashAll, portalRateCpp);
   const portalCpp = portalPoints > 0 ? (portalSavings * 100) / portalPoints : 0;
-  const portalFeasible = balanceOf(accounts, portalProg.name) === 0 || balanceOf(accounts, portalProg.name) >= portalPoints;
+  const portalFeasible = hasEnoughKnownBalance(accounts, portalProg.name, portalPoints);
   strategies.push({
     id: "portal",
     title: `Book through ${portalProg.name}`,
     subtitle: "One-stop bundle through your credit-card travel portal.",
     legs: [
-      { type: "flight", provider: `${portalProg.name} portal`, cashCost: flightCashCost * 0.05, pointsCost: Math.round(portalPoints * (flightCashCost / totalCashAll || 1)), pointsProgram: portalProg.name, fees: 0 },
-      ...(trip.needsHotel ? [{ type: "hotel" as const, provider: `${portalProg.name} portal`, cashCost: hotelCashCost * 0.05, pointsCost: Math.round(portalPoints * (hotelCashCost / totalCashAll)), pointsProgram: portalProg.name, fees: 0 }] : []),
-      ...(trip.needsCar ? [{ type: "car" as const, provider: `${portalProg.name} portal`, cashCost: carCashCost * 0.05, pointsCost: Math.round(portalPoints * (carCashCost / totalCashAll)), pointsProgram: portalProg.name, fees: 0 }] : []),
+      {
+        type: "flight",
+        provider: `${portalProg.name} portal`,
+        cashCost: 0,
+        pointsCost: Math.round(portalPoints * (flightCashCost / totalCashAll || 1)),
+        pointsProgram: portalProg.name,
+        fees: 0,
+      },
+      ...(trip.needsHotel
+        ? [
+            {
+              type: "hotel" as const,
+              provider: `${portalProg.name} portal`,
+              cashCost: 0,
+              pointsCost: Math.round(portalPoints * (hotelCashCost / totalCashAll)),
+              pointsProgram: portalProg.name,
+              fees: 0,
+            },
+          ]
+        : []),
+      ...(trip.needsCar
+        ? [
+            {
+              type: "car" as const,
+              provider: `${portalProg.name} portal`,
+              cashCost: 0,
+              pointsCost: Math.round(portalPoints * (carCashCost / totalCashAll)),
+              pointsProgram: portalProg.name,
+              fees: 0,
+            },
+          ]
+        : []),
     ],
     totalCash: Math.round(portalCash),
     totalPoints: portalPoints,
@@ -260,26 +369,55 @@ export function calculateStrategies(trip: TripInput, accounts: RewardAccount[]):
     centsPerPoint: portalCpp,
     feasible: portalFeasible,
     feasibilityReason: portalFeasible ? undefined : `Need more ${portalProg.name} points`,
-    perks: ["One booking, one confirmation", "Earn portal-tier bonuses"],
-    tradeoffs: ["Lower per-point value than transfer partners", "No elite credit on the flight"],
+    perks: [
+      "One booking, one confirmation",
+      `Uses a ${portalRateCpp.toFixed(2)}¢ portal redemption rate`,
+    ],
+    tradeoffs: [
+      "Lower per-point value than some transfer partners",
+      "Portal cancellation and elite-credit rules apply",
+    ],
     tags: ["bundled"],
   });
 
   // 4. Hybrid: points for flight, cash for hotel
   if (trip.needsHotel) {
     const hybridPoints = flightPoints;
-    const hybridCash = 11.20 * trip.travelers + hotelCashCost + carCashCost;
+    const hybridCash = 11.2 * trip.travelers + hotelCashCost + carCashCost;
     const hybridSavings = totalCashAll - hybridCash;
     const hybridCpp = (hybridSavings * 100) / hybridPoints;
-    const hybridFeasible = balanceOf(accounts, flightProg.name) === 0 || balanceOf(accounts, flightProg.name) >= hybridPoints;
+    const hybridFeasible = hasEnoughKnownBalance(accounts, flightProg.name, hybridPoints);
     strategies.push({
       id: "hybrid",
       title: "Points for flight, cash for hotel",
       subtitle: `Burn ${flightProg.name} miles on the flight; pay cash where points are weakest.`,
       legs: [
-        { type: "flight", provider: flightProg.name, cashCost: 11.20 * trip.travelers, pointsCost: hybridPoints, pointsProgram: flightProg.name, fees: 11.20 * trip.travelers },
-        { type: "hotel", provider: trip.preferredHotel || hotelProg.name, cashCost: hotelCashCost, pointsCost: 0, fees: 0 },
-        ...(trip.needsCar ? [{ type: "car" as const, provider: "Standard rental", cashCost: carCashCost, pointsCost: 0, fees: 0 }] : []),
+        {
+          type: "flight",
+          provider: flightProg.name,
+          cashCost: 11.2 * trip.travelers,
+          pointsCost: hybridPoints,
+          pointsProgram: flightProg.name,
+          fees: 11.2 * trip.travelers,
+        },
+        {
+          type: "hotel",
+          provider: trip.preferredHotel || hotelProg.name,
+          cashCost: hotelCashCost,
+          pointsCost: 0,
+          fees: 0,
+        },
+        ...(trip.needsCar
+          ? [
+              {
+                type: "car" as const,
+                provider: "Standard rental",
+                cashCost: carCashCost,
+                pointsCost: 0,
+                fees: 0,
+              },
+            ]
+          : []),
       ],
       totalCash: Math.round(hybridCash),
       totalPoints: hybridPoints,
@@ -297,23 +435,51 @@ export function calculateStrategies(trip: TripInput, accounts: RewardAccount[]):
   if (altFlight !== flightProg) {
     const altPts = pointsFor(flightCashCost, altFlight.baseCpp);
     const altHotelPts = trip.needsHotel ? pointsFor(hotelCashCost, altHotel.baseCpp) : 0;
-    const altCash = 11.20 * trip.travelers + carCashCost;
+    const altCash = 11.2 * trip.travelers + carCashCost;
     const altSavings = totalCashAll - altCash;
     const totalAltPts = altPts + altHotelPts;
     const altCpp = totalAltPts > 0 ? (altSavings * 100) / totalAltPts : 0;
     const altBreakdown: Record<string, number> = { [altFlight.name]: altPts };
     if (altHotelPts) altBreakdown[altHotel.name] = altHotelPts;
-    const altFeasible = Object.entries(altBreakdown).every(
-      ([prog, pts]) => balanceOf(accounts, prog) === 0 || balanceOf(accounts, prog) >= pts,
+    const altFeasible = Object.entries(altBreakdown).every(([prog, pts]) =>
+      hasEnoughKnownBalance(accounts, prog, pts),
     );
     strategies.push({
       id: "diversified",
       title: "Diversified split booking",
       subtitle: `Try ${altFlight.name}${trip.needsHotel ? ` + ${altHotel.name}` : ""} as an alternative ecosystem.`,
       legs: [
-        { type: "flight", provider: altFlight.name, cashCost: 11.20 * trip.travelers, pointsCost: altPts, pointsProgram: altFlight.name, fees: 11.20 * trip.travelers },
-        ...(trip.needsHotel ? [{ type: "hotel" as const, provider: altHotel.name, cashCost: 0, pointsCost: altHotelPts, pointsProgram: altHotel.name, fees: 0 }] : []),
-        ...(trip.needsCar ? [{ type: "car" as const, provider: "Standard rental", cashCost: carCashCost, pointsCost: 0, fees: 0 }] : []),
+        {
+          type: "flight",
+          provider: altFlight.name,
+          cashCost: 11.2 * trip.travelers,
+          pointsCost: altPts,
+          pointsProgram: altFlight.name,
+          fees: 11.2 * trip.travelers,
+        },
+        ...(trip.needsHotel
+          ? [
+              {
+                type: "hotel" as const,
+                provider: altHotel.name,
+                cashCost: 0,
+                pointsCost: altHotelPts,
+                pointsProgram: altHotel.name,
+                fees: 0,
+              },
+            ]
+          : []),
+        ...(trip.needsCar
+          ? [
+              {
+                type: "car" as const,
+                provider: "Standard rental",
+                cashCost: carCashCost,
+                pointsCost: 0,
+                fees: 0,
+              },
+            ]
+          : []),
       ],
       totalCash: Math.round(altCash),
       totalPoints: totalAltPts,
@@ -348,5 +514,9 @@ export function formatPoints(n: number): string {
 }
 
 export function formatCurrency(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 }
