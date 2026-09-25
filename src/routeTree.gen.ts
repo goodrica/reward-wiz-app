@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as ExtensionRouteImport } from './routes/extension'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
@@ -24,6 +31,11 @@ const LearnRoute = LearnRouteImport.update({
 const ExtensionRoute = ExtensionRouteImport.update({
   id: '/extension',
   path: '/extension',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -52,16 +64,20 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/dashboard': typeof DashboardRoute
   '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
+  '/scan': typeof ScanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/dashboard': typeof DashboardRoute
   '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
+  '/scan': typeof ScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,22 +85,26 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/dashboard': typeof DashboardRoute
   '/extension': typeof ExtensionRoute
   '/learn': typeof LearnRoute
+  '/scan': typeof ScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/auth' | '/compare' | '/extension' | '/learn'
+  fullPaths: '/' | '/account' | '/auth' | '/compare' | '/dashboard' | '/extension' | '/learn' | '/scan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/auth' | '/compare' | '/extension' | '/learn'
+  to: '/' | '/account' | '/auth' | '/compare' | '/dashboard' | '/extension' | '/learn' | '/scan'
   id:
     | '__root__'
     | '/'
     | '/account'
     | '/auth'
     | '/compare'
+    | '/dashboard'
     | '/extension'
     | '/learn'
+    | '/scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -92,12 +112,21 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
+  DashboardRoute: typeof DashboardRoute
   ExtensionRoute: typeof ExtensionRoute
   LearnRoute: typeof LearnRoute
+  ScanRoute: typeof ScanRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learn': {
       id: '/learn'
       path: '/learn'
@@ -110,6 +139,13 @@ declare module '@tanstack/react-router' {
       path: '/extension'
       fullPath: '/extension'
       preLoaderRoute: typeof ExtensionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -148,8 +184,10 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
+  DashboardRoute: DashboardRoute,
   ExtensionRoute: ExtensionRoute,
   LearnRoute: LearnRoute,
+  ScanRoute: ScanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
