@@ -22,7 +22,6 @@ import {
   type CatalogCard,
   type CatalogCarrierPlan,
   type CatalogOffer,
-  type CardPerk,
 } from "@/lib/rewards-catalog";
 
 export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
