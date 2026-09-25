@@ -16,6 +16,20 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
+            to="/scan"
+            className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            activeProps={{ className: "text-foreground" }}
+          >
+            Find savings
+          </Link>
+          <Link
+            to="/dashboard"
+            className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            activeProps={{ className: "text-foreground" }}
+          >
+            My savings
+          </Link>
+          <Link
             to="/compare"
             className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
             activeProps={{ className: "text-foreground" }}
