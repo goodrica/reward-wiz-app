@@ -55,8 +55,8 @@ function Scan() {
             Find the money you're leaving on the table.
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Three quick steps. We'll check for duplicate bills, carrier perks,
-            and card benefits you forgot you had.
+            Three quick steps. We'll check for duplicate bills, carrier perks, and card benefits you
+            forgot you had.
           </p>
         </div>
         {loaded && <OnboardingWizard initial={initial} onComplete={handleComplete} />}

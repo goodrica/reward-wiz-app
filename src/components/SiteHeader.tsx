@@ -65,7 +65,10 @@ export function SiteHeader() {
             </>
           ) : (
             <Link to="/auth">
-              <Button size="sm" className="rounded-full bg-foreground text-background hover:bg-foreground/90">
+              <Button
+                size="sm"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+              >
                 Sign in
               </Button>
             </Link>

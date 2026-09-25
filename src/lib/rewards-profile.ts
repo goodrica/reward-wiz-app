@@ -102,10 +102,9 @@ export async function saveProfile(userId: string | null, profile: RewardsProfile
 }
 
 /** Load match statuses keyed by match id. */
-export async function loadStatuses(
-  userId: string | null,
-): Promise<Record<string, MatchStatus>> {
-  if (!userId) return readLocal(Record<string, MatchStatus>>(LS_STATUSES) ?? {};
+export async function loadStatuses(userId: string | null): Promise<Record<string, MatchStatus>> {
+  const stored: Record<string, MatchStatus> | null = readLocal(LS_STATUSES);
+  if (!userId) return stored ?? {};
   const { data } = await supabase
     .from("matches")
     .select("id, status, refs, type")

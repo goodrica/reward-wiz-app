@@ -4,10 +4,7 @@ import { Card } from "@/components/ui/card";
 import type { MatchStatus, MatchType, RewardMatch } from "@/lib/rewards-engine";
 import { Check, ExternalLink, CopyX, Repeat, Gift, Tag } from "lucide-react";
 
-const TYPE_META: Record<
-  MatchType,
-  { label: string; icon: typeof Repeat; tone: string }
-> = {
+const TYPE_META: Record<MatchType, { label: string; icon: typeof Repeat; tone: string }> = {
   duplicate: { label: "Duplicate", icon: Repeat, tone: "text-terracotta" },
   unused_perk: { label: "Forgotten perk", icon: Gift, tone: "text-moss" },
   new_offer: { label: "Offer", icon: Tag, tone: "text-foreground" },
@@ -29,7 +26,9 @@ export function MatchCard({
     return (
       <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
         <div className="flex items-center gap-3">
-          <Icon className={`h-4 w-4 ${status === "done" ? "text-moss" : "text-muted-foreground"}`} />
+          <Icon
+            className={`h-4 w-4 ${status === "done" ? "text-moss" : "text-muted-foreground"}`}
+          />
           <span
             className={`text-sm ${status === "done" ? "text-muted-foreground line-through" : "text-muted-foreground"}`}
           >
@@ -40,7 +39,12 @@ export function MatchCard({
           <span className="text-xs text-muted-foreground">
             {status === "done" ? "Done" : "Dismissed"}
           </span>
-          <Button variant="ghost" size="sm" className="rounded-full" onClick={() => onStatus("open")}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full"
+            onClick={() => onStatus("open")}
+          >
             Undo
           </Button>
         </div>
@@ -91,7 +95,12 @@ export function MatchCard({
         >
           <Check className="mr-1.5 h-3.5 w-3.5" /> Marked done
         </Button>
-        <Button size="sm" variant="ghost" className="rounded-full" onClick={() => onStatus("dismissed")}>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="rounded-full"
+          onClick={() => onStatus("dismissed")}
+        >
           <CopyX className="mr-1.5 h-3.5 w-3.5" /> Not for me
         </Button>
         <span className="ml-auto text-[11px] text-muted-foreground">Estimate — confirm terms</span>

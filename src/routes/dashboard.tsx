@@ -21,7 +21,8 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Your savings · Reward Wiz" },
       {
         name: "description",
-        content: "Duplicate subscriptions, forgotten perks, and matching offers — ranked by yearly savings.",
+        content:
+          "Duplicate subscriptions, forgotten perks, and matching offers — ranked by yearly savings.",
       },
     ],
   }),
@@ -46,11 +47,10 @@ function Dashboard() {
     })();
   }, [user?.id]);
 
-  const matches = useMemo(
-    () => (profile ? runAllScans(profile) : []),
-    [profile],
+  const matches = useMemo(() => (profile ? runAllScans(profile) : []), [profile]);
+  const openMatches = matches.filter(
+    (m) => statuses[m.id] !== "done" && statuses[m.id] !== "dismissed",
   );
-  const openMatches = matches.filter((m) => statuses[m.id] !== "done" && statuses[m.id] !== "dismissed");
   const grouped = groupMatches(openMatches);
   const totalOpen = totalYearlySavings(openMatches);
   const doneCount = matches.filter((m) => statuses[m.id] === "done").length;
@@ -86,14 +86,15 @@ function Dashboard() {
       <div className="min-h-screen">
         <SiteHeader />
         <main className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <h1 className="font-display text-4xl font-semibold tracking-tight">
-            No profile yet.
-          </h1>
+          <h1 className="font-display text-4xl font-semibold tracking-tight">No profile yet.</h1>
           <p className="mt-3 text-muted-foreground">
             Run the two-minute scan and we'll show you exactly where the money is hiding.
           </p>
           <Link to="/scan">
-            <Button size="lg" className="mt-8 rounded-full bg-foreground text-background hover:bg-foreground/90">
+            <Button
+              size="lg"
+              className="mt-8 rounded-full bg-foreground text-background hover:bg-foreground/90"
+            >
               Start my scan <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
@@ -141,31 +142,49 @@ function Dashboard() {
         </div>
 
         {grouped.duplicate.length > 0 && (
-          <Section title="Duplicate subscriptions" matches={grouped.duplicate} statuses={statuses} onStatus={setStatus} />
+          <Section
+            title="Duplicate subscriptions"
+            matches={grouped.duplicate}
+            statuses={statuses}
+            onStatus={setStatus}
+          />
         )}
         {grouped.unused_perk.length > 0 && (
-          <Section title="Perks you forgot you had" matches={grouped.unused_perk} statuses={statuses} onStatus={setStatus} />
+          <Section
+            title="Perks you forgot you had"
+            matches={grouped.unused_perk}
+            statuses={statuses}
+            onStatus={setStatus}
+          />
         )}
         {grouped.new_offer.length > 0 && (
-          <Section title="Offers that match what you pay for" matches={grouped.new_offer} statuses={statuses} onStatus={setStatus} />
+          <Section
+            title="Offers that match what you pay for"
+            matches={grouped.new_offer}
+            statuses={statuses}
+            onStatus={setStatus}
+          />
         )}
 
         {matches.length > 0 && (
           <div className="mt-10 space-y-2">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Handled
-            </div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Handled</div>
             {matches
               .filter((m) => statuses[m.id] === "done" || statuses[m.id] === "dismissed")
               .map((m) => (
-                <MatchCard key={m.id} match={m} status={statuses[m.id]} onStatus={(s) => setStatus(m, s)} />
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  status={statuses[m.id]}
+                  onStatus={(s) => setStatus(m, s)}
+                />
               ))}
           </div>
         )}
 
         <p className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
-          Savings are estimates from list prices (Sep 2026). Always confirm terms with the
-          provider before cancelling anything.
+          Savings are estimates from list prices (Sep 2026). Always confirm terms with the provider
+          before cancelling anything.
         </p>
       </main>
     </div>
@@ -191,7 +210,12 @@ function Section({
       </div>
       <div className="mt-4 grid gap-4">
         {matches.map((m) => (
-          <MatchCard key={m.id} match={m} status={statuses[m.id] ?? "open"} onStatus={(s) => onStatus(m, s)} />
+          <MatchCard
+            key={m.id}
+            match={m}
+            status={statuses[m.id] ?? "open"}
+            onStatus={(s) => onStatus(m, s)}
+          />
         ))}
       </div>
     </section>

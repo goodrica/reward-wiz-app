@@ -128,31 +128,37 @@ export const CARD_CATALOG: CatalogCard[] = [
         creditPerMonth: 20,
         detail:
           "Digital Entertainment Credit — up to $20/mo across Disney+, Disney Bundle, Hulu, ESPN+, Peacock and others. Enrollment required.",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
       },
       {
         service: "hulu",
         creditPerMonth: 20,
         detail: "Digital Entertainment Credit — up to $20/mo (shared cap with Disney+ / Peacock).",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
       },
       {
         service: "peacock",
         creditPerMonth: 20,
         detail: "Digital Entertainment Credit — up to $20/mo (shared cap with Disney+ / Hulu).",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
       },
       {
         service: "walmartplus",
         creditPerMonth: 12.95,
-        detail: "Walmart+ Credit — full monthly membership cost covered (Walmart+ includes Paramount+).",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
+        detail:
+          "Walmart+ Credit — full monthly membership cost covered (Walmart+ includes Paramount+).",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
       },
       {
         service: "uberone",
         creditPerMonth: 15,
         detail: "Uber Cash — $15/mo in Uber credits, usable toward Uber One membership.",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/platinum-card/",
       },
     ],
   },
@@ -166,13 +172,15 @@ export const CARD_CATALOG: CatalogCard[] = [
         creditPerMonth: 10,
         detail:
           "Up to $10/mo in dining credits — Grubhub / Seamless cover most of DashPass's cost; plus complimentary DashPass via Grubhub+.",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/gold-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/gold-card/",
       },
       {
         service: "uberone",
         creditPerMonth: 10,
         detail: "$10/mo in Uber Cash — stack toward Uber One.",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/gold-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/gold-card/",
       },
     ],
   },
@@ -184,14 +192,17 @@ export const CARD_CATALOG: CatalogCard[] = [
       {
         service: "disney",
         creditPerMonth: 7,
-        detail: "$7/mo statement credit for The Disney Bundle (Disney+, Hulu, ESPN+). Enrollment required.",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/blue-cash-preferred-card/",
+        detail:
+          "$7/mo statement credit for The Disney Bundle (Disney+, Hulu, ESPN+). Enrollment required.",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/blue-cash-preferred-card/",
       },
       {
         service: "hulu",
         creditPerMonth: 7,
         detail: "$7/mo Disney Bundle credit (shared cap).",
-        sourceUrl: "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/blue-cash-preferred-card/",
+        sourceUrl:
+          "https://www.americanexpress.com/us/credit-cards/card-application/apply/prospect/terms/blue-cash-preferred-card/",
       },
     ],
   },
@@ -222,7 +233,8 @@ export const CARD_CATALOG: CatalogCard[] = [
       {
         service: "dashpass",
         creditPerMonth: 9.99,
-        detail: "Complimentary DashPass for a minimum of 12 months (then auto-renews at member rate).",
+        detail:
+          "Complimentary DashPass for a minimum of 12 months (then auto-renews at member rate).",
         sourceUrl: "https://creditcards.chase.com/rewards-credit-cards/sapphire/preferred",
       },
       {

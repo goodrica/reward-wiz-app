@@ -5,11 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Check, Search } from "lucide-react";
-import {
-  CARD_CATALOG,
-  CARRIER_PLAN_CATALOG,
-  SUBSCRIPTION_CATALOG,
-} from "@/lib/rewards-catalog";
+import { CARD_CATALOG, CARRIER_PLAN_CATALOG, SUBSCRIPTION_CATALOG } from "@/lib/rewards-catalog";
 import type { BillingCycle, RewardsProfile } from "@/lib/rewards-engine";
 
 const STEPS = ["Subscriptions", "Cards", "Phone plan"] as const;
@@ -158,8 +154,8 @@ function SubscriptionsStep({
         What do you pay for every month?
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Pick from the common ones, then add anything we missed. Be honest — the
-        scan only works with the real list.
+        Pick from the common ones, then add anything we missed. Be honest — the scan only works with
+        the real list.
       </p>
 
       <div className="relative mt-6">
@@ -177,7 +173,15 @@ function SubscriptionsStep({
           <button
             key={c.name}
             onClick={() =>
-              setSubs([...subs, { name: c.name, category: c.category, cost: c.typicalMonthlyCost, cycle: "monthly" }])
+              setSubs([
+                ...subs,
+                {
+                  name: c.name,
+                  category: c.category,
+                  cost: c.typicalMonthlyCost,
+                  cycle: "monthly",
+                },
+              ])
             }
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-primary hover:bg-primary/5 hover:text-foreground"
           >
@@ -220,9 +224,7 @@ function SubscriptionsStep({
       )}
 
       <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/30 p-4">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-          Add your own
-        </div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Add your own</div>
         <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_110px_90px_auto]">
           <Input
             placeholder="Name (e.g. YMCA membership)"
@@ -277,8 +279,8 @@ function CardsStep({
         Which cards are in your wallet?
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Card perks quietly pay for streaming, delivery, and rides — we'll match
-        them against your subscriptions. Skip if you'd rather not say.
+        Card perks quietly pay for streaming, delivery, and rides — we'll match them against your
+        subscriptions. Skip if you'd rather not say.
       </p>
 
       <div className="mt-6 space-y-2">
@@ -290,9 +292,7 @@ function CardsStep({
               onClick={() =>
                 setCards(
                   active
-                    ? cards.filter(
-                        (c) => !(c.issuer === card.issuer && c.product === card.product),
-                      )
+                    ? cards.filter((c) => !(c.issuer === card.issuer && c.product === card.product))
                     : [...cards, { issuer: card.issuer, product: card.product }],
                 )
               }
@@ -351,8 +351,8 @@ function CarrierStep({
         Who's your phone carrier?
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Carrier plans are the sneakiest source of free perks — Netflix "On Us",
-        bundled streaming, included memberships. Select your plan if you see it.
+        Carrier plans are the sneakiest source of free perks — Netflix "On Us", bundled streaming,
+        included memberships. Select your plan if you see it.
       </p>
 
       <div className="mt-6 space-y-2">
@@ -364,9 +364,7 @@ function CarrierStep({
               onClick={() =>
                 setCarrierPlans(
                   active
-                    ? carrierPlans.filter(
-                        (c) => !(c.carrier === p.carrier && c.plan === p.plan),
-                      )
+                    ? carrierPlans.filter((c) => !(c.carrier === p.carrier && c.plan === p.plan))
                     : [...carrierPlans, { carrier: p.carrier, plan: p.plan }],
                 )
               }
@@ -397,8 +395,8 @@ function CarrierStep({
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Don't see your plan? Skip — you can add coverage later. This stays on
-        your device unless you're signed in.
+        Don't see your plan? Skip — you can add coverage later. This stays on your device unless
+        you're signed in.
       </p>
     </div>
   );
