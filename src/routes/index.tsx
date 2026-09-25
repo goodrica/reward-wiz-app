@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Layers, Compass } from "lucide-react";
+import { ArrowRight, Sparkles, Layers, Compass, Gift } from "lucide-react";
 import heroImage from "@/assets/hero-window.jpg";
 
 export const Route = createFileRoute("/")({
@@ -34,8 +34,8 @@ function Home() {
           <div className="mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-12 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pb-28 lg:pt-20">
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft">
-                <Sparkles className="h-3 w-3 text-terracotta" />
-                A decision engine, not a search engine
+                <Sparkles className="h-3 w-3 text-terracotta" />A decision engine, not a search
+                engine
               </div>
               <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-balance sm:text-6xl lg:text-7xl">
                 Book the <em className="font-display italic text-terracotta">smartest</em> way,
@@ -47,7 +47,10 @@ function Home() {
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link to="/compare">
-                  <Button size="lg" className="rounded-full bg-foreground text-background shadow-elevated hover:bg-foreground/90">
+                  <Button
+                    size="lg"
+                    className="rounded-full bg-foreground text-background shadow-elevated hover:bg-foreground/90"
+                  >
                     Start a comparison <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Button>
                 </Link>
@@ -58,7 +61,8 @@ function Home() {
                 </Link>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                Built on the cents-per-point methodology used by The Points Guy, NerdWallet &amp; AwardWallet.
+                Built on the cents-per-point methodology used by The Points Guy, NerdWallet &amp;
+                AwardWallet.
               </p>
 
               <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-border/60 pt-8">
@@ -69,7 +73,9 @@ function Home() {
                 ].map((s) => (
                   <div key={s.l}>
                     <dt className="font-display text-3xl font-semibold tracking-tight">{s.v}</dt>
-                    <dd className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{s.l}</dd>
+                    <dd className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
+                      {s.l}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -86,12 +92,16 @@ function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/30 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-card/95 p-4 shadow-soft backdrop-blur">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">Best per-point value</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Best per-point value
+                  </div>
                   <div className="mt-1 flex items-baseline justify-between">
                     <span className="font-display text-2xl font-semibold">JFK → LIS</span>
                     <span className="font-display text-2xl font-semibold text-moss">2.14¢</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">Split: JetBlue flight + Hyatt hotel</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Split: JetBlue flight + Hyatt hotel
+                  </div>
                 </div>
               </div>
             </div>
@@ -122,10 +132,75 @@ function Home() {
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground shadow-soft">
                   <f.icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 font-display text-xl font-semibold tracking-tight">{f.title}</h3>
+                <h3 className="mt-4 font-display text-xl font-semibold tracking-tight">
+                  {f.title}
+                </h3>
                 <p className="mt-2 text-sm text-muted-foreground text-balance">{f.body}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Reward Wiz */}
+        <section className="border-t border-border/60">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 sm:grid-cols-2 sm:items-center sm:py-20">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft">
+                <Gift className="h-3 w-3 text-moss" />
+                New · Reward Wiz
+              </div>
+              <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+                Stop paying for the same thing twice.
+              </h2>
+              <p className="mt-4 text-muted-foreground text-balance">
+                Your phone plan, your credit cards, your subscriptions — we cross-check all of them
+                and flag the money you're leaving on the table: duplicate bills, bundled perks you
+                forgot, card credits you never activated.
+              </p>
+              <Link to="/scan">
+                <Button
+                  size="lg"
+                  className="mt-8 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  Scan my subscriptions <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="rounded-3xl border border-border/60 bg-card p-6 shadow-soft">
+              {[
+                {
+                  title: "Netflix — covered by your T-Mobile plan",
+                  body: "Go5G Plus includes Netflix Standard. Cancel the standalone bill.",
+                  save: "$186/yr",
+                },
+                {
+                  title: "Two bills for the same service",
+                  body: "HBO Max and Max are the same subscription. Keep one.",
+                  save: "$204/yr",
+                },
+                {
+                  title: "DashPass — free with Sapphire Reserve",
+                  body: "Your card already pays for it while it's your payment method.",
+                  save: "$120/yr",
+                },
+              ].map((m) => (
+                <div
+                  key={m.title}
+                  className="flex items-start justify-between gap-4 border-b border-border/50 py-4 first:pt-0 last:border-0 last:pb-0"
+                >
+                  <div>
+                    <div className="font-medium">{m.title}</div>
+                    <div className="mt-0.5 text-sm text-muted-foreground">{m.body}</div>
+                  </div>
+                  <span className="shrink-0 font-display text-lg font-semibold text-moss">
+                    {m.save}
+                  </span>
+                </div>
+              ))}
+              <p className="mt-4 text-[11px] text-muted-foreground">
+                Example findings. Your scan is personalized from what you actually pay for.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -137,7 +212,10 @@ function Home() {
             Three quick steps and you'll see exactly which strategy wins for your trip.
           </p>
           <Link to="/compare">
-            <Button size="lg" className="mt-8 rounded-full bg-foreground text-background hover:bg-foreground/90">
+            <Button
+              size="lg"
+              className="mt-8 rounded-full bg-foreground text-background hover:bg-foreground/90"
+            >
               Compare a trip <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
