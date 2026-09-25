@@ -87,7 +87,6 @@ export const SERVICE_ALIASES: Record<string, string[]> = {
   calm: ["calm", "calm premium"],
   headspace: ["headspace"],
   adobecc: ["adobe creative cloud", "adobe cc"],
-  paramountwalmart: [],
 };
 
 export const SUBSCRIPTION_CATALOG: CatalogSubscription[] = [
@@ -298,7 +297,7 @@ export const CARRIER_PLAN_CATALOG: CatalogCarrierPlan[] = [
     bundles: [
       {
         service: "walmartplus",
-        includedTier: "Walmart+ included ( Paramount+ bundled )",
+        includedTier: "Walmart+ included (Paramount+ bundled)",
         monthlyValue: 12.95,
         sourceUrl: "https://www.verizon.com/solutions-and-services/verizon-walmart-plus/",
       },
@@ -334,7 +333,7 @@ export const OFFER_CATALOG: CatalogOffer[] = [
     sourceUrl: "https://www.americanexpress.com/en-us/benefits/offers/",
   },
   {
-    merchant: " paramount",
+    merchant: "paramount",
     benefit: "Walmart+ includes Paramount+ at no extra cost",
     category: "streaming",
     monthlyValue: 7.99,
