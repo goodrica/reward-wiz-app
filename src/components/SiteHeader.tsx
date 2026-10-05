@@ -30,6 +30,13 @@ export function SiteHeader() {
             My savings
           </Link>
           <Link
+            to="/accounts"
+            className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            activeProps={{ className: "text-foreground" }}
+          >
+            Accounts
+          </Link>
+          <Link
             to="/compare"
             className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
             activeProps={{ className: "text-foreground" }}
